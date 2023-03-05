@@ -4,6 +4,7 @@ import { api } from "~/utils/api";
 
 import "~/styles/globals.css";
 import 'react-tooltip/dist/react-tooltip.css'
+import 'swiper/css';
 import Head from "next/head";
 import NavBar from "~/components/navbar";
 
