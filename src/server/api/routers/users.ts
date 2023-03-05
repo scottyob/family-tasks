@@ -42,6 +42,13 @@ export const usersRouter = createTRPCRouter({
                       }
                     }
                   }
+                },
+                include: {
+                  users: {
+                    include: {
+                      user: true
+                    }
+                  }
                 }
               })
         }),

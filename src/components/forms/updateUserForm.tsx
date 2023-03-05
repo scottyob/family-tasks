@@ -26,7 +26,7 @@ export default function UpdateUserForm() {
             <span className="text-gray-700">ID</span>
             <input
                 disabled={true}
-                type="text" id="name" value={user?.id} name="name" className={textClass + " bg-gray-200"} />
+                type="text" id="name" value={user?.id ?? ''} name="name" className={textClass + " bg-gray-200"} />
         </label>
 
         <label className="block">

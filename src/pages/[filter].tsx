@@ -1,6 +1,7 @@
 import { type NextPage } from "next";
 import Head from "next/head";
 import Link from "next/link";
+import React from "react";
 import NavBar from "~/components/navbar";
 import StatusBar from "~/components/statusbar";
 import TaskList from "~/components/tasklist";
@@ -8,13 +9,13 @@ import TaskList from "~/components/tasklist";
 import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
-  // const hello = api.example.hello.useQuery({ text: "from tRPC" });
-  
+  // The selected group to filter tasks out for
+  const [selectedGroup, setSelectedGroup] = React.useState<string | undefined>();
 
   return (
     <>
         <div>
-          <StatusBar />
+          <StatusBar setSelectedGroup={setSelectedGroup} />
         </div>
         <div className="overflow-auto grow">
           <TaskList />
