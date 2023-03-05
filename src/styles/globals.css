@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.ReactModal__Overlay {
+    opacity: 0;
+    margin-top: -25px;
+    transition: opacity 250ms ease-in-out;
+    transition: margin 250ms ease-in-out;
+}
+
+.ReactModal__Overlay--after-open{
+    opacity: 1;
+    margin-top: 0;
+}
+
+.ReactModal__Overlay--before-close{
+    opacity: 0;
+    margin-top: -20px;
+}
