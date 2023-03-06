@@ -16,10 +16,13 @@ const MyApp: AppType = ({ Component, pageProps }) => {
       <style jsx global>{`
         html {
         }
-        
+        h1 {
+          font-family: ${vt323.style.fontFamily};
+          font-size: 2em;
+        }
         h2 {
           font-family: ${vt323.style.fontFamily};
-          font-size: 125%
+          font-size: 1.4em;
         }
         .vt323 {
           font-family: ${vt323.style.fontFamily};

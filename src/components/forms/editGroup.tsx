@@ -37,7 +37,7 @@ export default function EditGroup(props: Props) {
 
             {/* Rewards??? */}
 
-            {/* Remove button that does not work */}
+            {/* Remove button */}
             <a href="" className="text-red-800" onClick={(event) => {
                 event.preventDefault();
                 const userId = myUser.data?.id;
