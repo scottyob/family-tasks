@@ -27,6 +27,7 @@ export function StandardListItem(props: Props) {
 
 interface CheckedListItemProps {
     task: Task
+    onSelected?: () => void;
 }
 
 export function TaskListItem(props: CheckedListItemProps) {
@@ -40,7 +41,7 @@ export function TaskListItem(props: CheckedListItemProps) {
     color = 'bg-blue-400';
     // color = 'bg-gray-400';
 
-    if(props.task.complete) {
+    if (props.task.complete) {
         leftIcon = <BiCheck size={20} />;
         textColor = 'text-gray-400';
         color = 'bg-gray-400'
@@ -59,22 +60,22 @@ export function TaskListItem(props: CheckedListItemProps) {
     }
 
     return <div className="flex m-0.5 min-h-[60px]">
-    {/* Left priority & done button */}
-    <div
-        className={"rounded-l-lg min-w-[40px] place-items-center justify-center flex " + color}
-        onClick={toggleFlagged}
-    >
-        <div className="bg-gray-200/40 min-w-[20px] min-h-[20px]">{leftIcon}</div>
-    </div>
+        {/* Left priority & done button */}
+        <div
+            className={"rounded-l-lg min-w-[40px] place-items-center justify-center flex " + color}
+            onClick={toggleFlagged}
+        >
+            <div className="bg-gray-200/40 min-w-[20px] min-h-[20px]">{leftIcon}</div>
+        </div>
 
-    {/* Text container */}
-    <div className="rounded-r-lg grow p-2 flex bg-gray-50">
-        <div className="place-self-center grow flex">
-            <div className={textColor}>
-                {props.task.title}
+        {/* Text container */}
+        <div className="rounded-r-lg grow p-2 flex bg-gray-50" onClick={() => {if(props.onSelected) {props.onSelected()}}}>
+            <div className="place-self-center grow flex">
+                <div className={textColor}>
+                    {props.task.title}
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 }

@@ -19,7 +19,10 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         
         h2 {
           font-family: ${vt323.style.fontFamily};
-          font-size: 150%
+          font-size: 125%
+        }
+        .vt323 {
+          font-family: ${vt323.style.fontFamily};
         }
         `}</style>
       <Head>

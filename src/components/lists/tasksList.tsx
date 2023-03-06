@@ -1,7 +1,9 @@
-import { Group } from ".prisma/client";
+import { Group, Task } from ".prisma/client";
+import { ModalFormContainer } from "family-tasks/src/components/forms/modalFormContainer";
 import React from "react";
 import { api } from "~/utils/api";
 import { TaskType } from "~/utils/enums";
+import TaskEdit from "../forms/taskEdit";
 import ListContainer from "./listContainer";
 import { StandardListItem, TaskListItem } from "./listItems";
 
@@ -18,7 +20,7 @@ function FilterSelector(props: {
 }) {
     const selected = "underline decoration-2 underline-offset-8 text-purple-800";
 
-    return <div className="cursor-pointer text-sm align-text-bottom p-2 space-x-2 flex absolute right-0 bottom-0">
+    return <div className="vt323 cursor-pointer text-sm align-text-bottom p-2 space-x-2 flex absolute right-0 bottom-0">
         <div className={props.status == "Active" ? selected : ""} onClick={() => props.setStatus("Active")}>Active</div>
         <div className={props.status == "Scheduled" ? selected : ""} onClick={() => props.setStatus("Scheduled")}>Scheduled</div>
         <div className={props.status == "Complete" ? selected : ""} onClick={() => props.setStatus("Complete")}>Complete</div>
@@ -27,6 +29,7 @@ function FilterSelector(props: {
 
 export default function TasksList(props: Props) {
     const [filter, setFilter] = React.useState<TodoStatus>("Active");
+    const [modifyTaskId, setModifyTaskId] = React.useState<Task | undefined>();
 
     // Database interactions
     const tasksQuery = api.tasks.tasksForGroupByType.useQuery({
@@ -57,7 +60,7 @@ export default function TasksList(props: Props) {
         }
 
 
-        tasksList = tasks.map(t => <TaskListItem key={t.id} task={t} />);
+        tasksList = tasks.map(t => <TaskListItem key={t.id} task={t} onSelected={() => {setModifyTaskId(t)}} />);
     }
 
     // Callback for adding a quick task
@@ -82,6 +85,13 @@ export default function TasksList(props: Props) {
     // Render the list of tasks
     const addPlaceholder = props.group == null ? undefined : "Add a " + props.type.toString();
     return <div className={containerStyle} >
+        <ModalFormContainer 
+            shown={modifyTaskId !== undefined}
+            setShown={(shown) => {if(!shown) {setModifyTaskId(undefined)}}}
+            unpadded
+        >
+            <TaskEdit task={modifyTaskId} />
+        </ModalFormContainer>
         <div className="flex relative">
             <h2>{props.group?.name} {props.type.toString()}s</h2>
             <FilterSelector status={filter} setStatus={setFilter} />
