@@ -11,10 +11,10 @@ datasource db {
 }
 
 model User {
-  id            String          @id
-  name          String?
-  groups        UsersOnGroups[]
-  gold          Int
+  id     String          @id
+  name   String?
+  groups UsersOnGroups[]
+  gold   Int
 }
 
 model UsersOnGroups {
@@ -27,7 +27,19 @@ model UsersOnGroups {
 }
 
 model Group {
-  id            String          @id @default(uuid())
-  name          String
-  users         UsersOnGroups[]
+  id    String          @id @default(uuid())
+  name  String
+  users UsersOnGroups[]
+  Task  Task[]
+}
+
+model Task {
+  id       String  @id @default(uuid())
+  title    String
+  notes    String?
+  type     String  @default("Task") // Expected {Habbit, Daily, Task}
+  complete Boolean @default(false)
+
+  group   Group  @relation(fields: [groupId], references: [id])
+  groupId String
 }

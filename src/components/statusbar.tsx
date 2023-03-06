@@ -6,15 +6,11 @@ import Avvvatars from 'avvvatars-react';
 import { Swiper, SwiperSlide } from "swiper/react";
 import { Mousewheel, Pagination } from "swiper";
 import { Group, User } from '.prisma/client';
-
-const vt323 = VT323({
-  weight: '400',
-  subsets: ['latin'],
-})
-
-const titleClass = vt323.className + " text-center text-lg";
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from '~/server/api/root';
+import { vt323 } from '~/utils/fonts';
+
+const titleClass = vt323.className + " text-center text-lg";
 type RouterOutput = inferRouterOutputs<AppRouter>;
 
 function Name(props: {name: string}) {
@@ -51,7 +47,7 @@ function StatusSlide() {
       </div>
       <div className='text-left'>
         <div><strong>Gold: </strong>{user.gold}</div>
-        <div><strong>Tasks: </strong></div>
+        {/* <div><strong>Tasks: </strong></div> */}
       </div>
     </div>
   }
@@ -78,7 +74,7 @@ function GroupSlide(props: { group: RouterOutput['users']['groups'][0] }) {
 }
 
 interface Props {
-  setSelectedGroup: (groupId: string) => void;
+  setSelectedGroup: (groupId: (Group | undefined)) => void;
 }
 
 export default function StatusBar(props: Props) {
@@ -106,11 +102,9 @@ export default function StatusBar(props: Props) {
       }}
       onSlideChange={(swiper) => {
         // Set the group filter up the stack
-        const group = groups?.[swiper.activeIndex];
-        if (group == undefined) {
-          return;
-        }
-        props.setSelectedGroup(group.id);
+        const group = groups?.[swiper.activeIndex - 1];
+
+        props.setSelectedGroup(group);
       }}
       modules={[Mousewheel, Pagination]}
       className="mySwiper"

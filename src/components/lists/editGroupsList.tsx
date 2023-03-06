@@ -3,7 +3,7 @@ import { useState } from "react";
 import { api } from "~/utils/api";
 import EditGroup from "../forms/editGroup";
 import ListContainer from "./listContainer";
-import StandardListItem from "./standardListItem";
+import { StandardListItem } from "./listItems";
 
 export default function EditGroupsList() {
     const groups = api.users.groups.useQuery();

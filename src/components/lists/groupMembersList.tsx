@@ -1,6 +1,6 @@
 import { api } from "~/utils/api";
 import ListContainer from "./listContainer";
-import StandardListItem from "./standardListItem";
+import { StandardListItem } from "./listItems";
 
 export default function GroupMembersList(props: { groupId: string }) {
     const membersQuery = api.users.groupMembers.useQuery({ id: props.groupId });

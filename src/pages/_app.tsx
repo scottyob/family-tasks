@@ -7,11 +7,21 @@ import 'react-tooltip/dist/react-tooltip.css'
 import 'swiper/css';
 import Head from "next/head";
 import NavBar from "~/components/navbar";
+import { vt323 } from "~/utils/fonts";
 
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   return (
     <>
+      <style jsx global>{`
+        html {
+        }
+        
+        h2 {
+          font-family: ${vt323.style.fontFamily};
+          font-size: 150%
+        }
+        `}</style>
       <Head>
         <title>Family Tasks</title>
         <meta name="description" content="Tasks for the family" />
