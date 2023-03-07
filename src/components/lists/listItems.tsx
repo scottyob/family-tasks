@@ -37,8 +37,8 @@ export function TaskListItem(props: CheckedListItemProps) {
     let leftIcon = <></>;
 
     let color = 'bg-red-400 ';
-    color = 'bg-green-400';
     color = 'bg-blue-400';
+    color = 'bg-green-400';
     // color = 'bg-gray-400';
 
     if (props.task.complete) {

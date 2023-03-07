@@ -75,27 +75,33 @@ function GroupSlide(props: { group: RouterOutput['users']['groups'][0] }) {
 
 interface Props {
   setSelectedGroup: (groupId: (Group | undefined)) => void;
+  selectedGroupId?: String;
 }
 
 export default function StatusBar(props: Props) {
   const groupsQuery = api.users.groups.useQuery();
   const groups = groupsQuery.data;
-
-  let groupSlides = [<div key=""></div>];
-
-  if (groups !== undefined) {
-    groupSlides = groups.map(g => 
-      <SwiperSlide key={g.id}>
-        <GroupSlide group={g} />
-      </SwiperSlide>)
+  if(groups == null) {
+    return <></>;
   }
 
+  const groupSlides = <>{groups?.map(g =>
+    <SwiperSlide key={g.id}>
+        <GroupSlide group={g} />
+      </SwiperSlide>
+  )}</>
+
+  let groupIndex: (number | undefined) = groups?.findIndex(g => g.id === props.selectedGroupId) ?? -1;
+  groupIndex = groupIndex === -1 ? undefined : groupIndex + 1;
+
+  console.log("Initial index", groupIndex);
 
   return <>
     <Swiper
       direction={"horizontal"}
       slidesPerView={1}
       spaceBetween={30}
+      initialSlide={groupIndex}
       mousewheel={true}
       pagination={{
         clickable: true,
@@ -103,6 +109,8 @@ export default function StatusBar(props: Props) {
       onSlideChange={(swiper) => {
         // Set the group filter up the stack
         const group = groups?.[swiper.activeIndex - 1];
+        console.log("New index", swiper.activeIndex);
+        console.log("Group", group);
 
         props.setSelectedGroup(group);
       }}

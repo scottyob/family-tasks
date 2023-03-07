@@ -15,7 +15,7 @@ export default function TaskEdit(props: Props) {
 
     const deleteMutation = api.tasks.delete.useMutation();
 
-    const color = 'bg-blue-400';
+    const color = 'bg-green-400';
     const textInputClass = `flex fill`
     const labelClass = "mb-2 flex flex-col";
 
@@ -24,7 +24,7 @@ export default function TaskEdit(props: Props) {
         <div className={"min-w-[350px] " + color} >
             <div className="space-x-2 p-4 flex">
                 {/* Header */}
-                <h1 className="grow">Edit {task.type}</h1>
+                <h1 className="grow text-white-400">Edit {task.type}</h1>
                 <div>Cancel</div>
                 <div>Save</div>
             </div>
