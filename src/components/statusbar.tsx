@@ -9,6 +9,8 @@ import { Group, User } from '.prisma/client';
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from '~/server/api/root';
 import { vt323 } from '~/utils/fonts';
+import { FilterContext } from '~/utils/context';
+import React from 'react';
 
 const titleClass = vt323.className + " text-center text-lg";
 type RouterOutput = inferRouterOutputs<AppRouter>;
@@ -74,11 +76,12 @@ function GroupSlide(props: { group: RouterOutput['users']['groups'][0] }) {
 }
 
 interface Props {
-  setSelectedGroup: (groupId: (Group | undefined)) => void;
-  selectedGroupId?: String;
+
 }
 
 export default function StatusBar(props: Props) {
+  const {group, setGroup} = React.useContext(FilterContext);
+
   const groupsQuery = api.users.groups.useQuery();
   const groups = groupsQuery.data;
   if(groups == null) {
@@ -91,10 +94,8 @@ export default function StatusBar(props: Props) {
       </SwiperSlide>
   )}</>
 
-  let groupIndex: (number | undefined) = groups?.findIndex(g => g.id === props.selectedGroupId) ?? -1;
+  let groupIndex: (number | undefined) = groups?.findIndex(g => g.id === group) ?? -1;
   groupIndex = groupIndex === -1 ? undefined : groupIndex + 1;
-
-  console.log("Initial index", groupIndex);
 
   return <>
     <Swiper
@@ -109,10 +110,7 @@ export default function StatusBar(props: Props) {
       onSlideChange={(swiper) => {
         // Set the group filter up the stack
         const group = groups?.[swiper.activeIndex - 1];
-        console.log("New index", swiper.activeIndex);
-        console.log("Group", group);
-
-        props.setSelectedGroup(group);
+        setGroup(group?.id);
       }}
       modules={[Mousewheel, Pagination]}
       className="mySwiper"

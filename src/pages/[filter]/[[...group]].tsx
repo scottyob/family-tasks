@@ -10,35 +10,23 @@ import { api } from "~/utils/api";
 import { Group } from ".prisma/client";
 import { TaskType } from "~/utils/enums";
 import { useRouter } from "next/router";
+import { FilterContext } from "~/utils/context";
 
 
 const Home: NextPage = () => {
   // The selected group to filter tasks out for
-  const router = useRouter();
-  const {filter, group: groupArray} = router.query;
-
-  const [selectedGroup, setSelectedGroup] = React.useState<Group | undefined>();
-  const selectedGroupId = Array.isArray(groupArray) ? groupArray[0] : undefined;
-  // debugger;
-
-  const updateGroup = (group: (Group | undefined)) => {
-    let url = '/' + filter;
-    if(group !== undefined) {
-      url += '/' + group.id;
-    }
-    router.push(url, undefined, { shallow: true });
-    setSelectedGroup(group);
-  }
-
-  const taskType = filter as TaskType ?? TaskType.Task
+  const {group, filterType} = React.useContext(FilterContext);
+  const taskType = filterType as TaskType ?? TaskType.Task
 
   return (
+    
+
     <>
         <div>
-          <StatusBar selectedGroupId={selectedGroupId} setSelectedGroup={updateGroup} />
+          <StatusBar />
         </div>
         <div className="overflow-auto grow">
-          <TaskList group={selectedGroup} type={taskType} />
+          <TaskList group={group} type={taskType} />
         </div>
     </>
   );
