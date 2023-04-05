@@ -11,6 +11,7 @@ import type { AppRouter } from '~/server/api/root';
 import { vt323 } from '~/utils/fonts';
 import { FilterContext } from '~/utils/context';
 import React from 'react';
+import { useRouter } from 'next/router';
 
 const titleClass = vt323.className + " text-center text-lg";
 type RouterOutput = inferRouterOutputs<AppRouter>;
@@ -80,7 +81,8 @@ interface Props {
 }
 
 export default function StatusBar(props: Props) {
-  const {group, setGroup} = React.useContext(FilterContext);
+  const {group, filterType, setGroup} = React.useContext(FilterContext);
+  const  router  = useRouter();
 
   const groupsQuery = api.users.groups.useQuery();
   const groups = groupsQuery.data;
@@ -93,6 +95,7 @@ export default function StatusBar(props: Props) {
         <GroupSlide group={g} />
       </SwiperSlide>
   )}</>
+
 
   let groupIndex: (number | undefined) = groups?.findIndex(g => g.id === group) ?? -1;
   groupIndex = groupIndex === -1 ? undefined : groupIndex + 1;
@@ -110,7 +113,13 @@ export default function StatusBar(props: Props) {
       onSlideChange={(swiper) => {
         // Set the group filter up the stack
         const group = groups?.[swiper.activeIndex - 1];
+        let grp = "";
         setGroup(group?.id);
+        if(group?.id != null) {
+          grp = `/${group.id}`;
+        }
+        router.push(`/${filterType}${grp}`);
+        
       }}
       modules={[Mousewheel, Pagination]}
       className="mySwiper"

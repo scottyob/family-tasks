@@ -16,17 +16,15 @@ import { FilterContext } from "~/utils/context";
 const Home: NextPage = () => {
   // The selected group to filter tasks out for
   const {group, filterType} = React.useContext(FilterContext);
-  const taskType = filterType as TaskType ?? TaskType.Task
+  const taskType = filterType as TaskType ?? TaskType.Task;
 
   return (
-    
-
     <>
         <div>
-          <StatusBar />
+          <StatusBar key={group} />
         </div>
         <div className="overflow-auto grow">
-          <TaskList group={group} type={taskType} />
+          <TaskList groupId={group} type={taskType} />
         </div>
     </>
   );

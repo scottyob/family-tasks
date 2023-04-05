@@ -8,15 +8,28 @@ import 'swiper/css';
 import Head from "next/head";
 import NavBar from "~/components/navbar";
 import { vt323 } from "~/utils/fonts";
-import React from "react";
+import React, { useEffect } from "react";
 import { FilterContext, FilterContextType } from "~/utils/context";
+import { useRouter } from "next/router";
+import { TaskType } from "~/utils/enums";
 
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   // Global context
-  const [filterType, setFilterType] = React.useState("Task");
-  const [group, setGroup] = React.useState<string | undefined>(undefined);
+
+  // Find the set group
+  const router = useRouter();
+  const urlGroup = router.query['group']?.[0];
+  const urlFilter = (router.query['filter'] as string | undefined ?? "Task");
+
+  const [filterType, setFilterType] = React.useState(urlFilter);
+  const [group, setGroup] = React.useState<string | undefined>(urlGroup);
   const value: FilterContextType = { filterType, setFilterType, group, setGroup };
+
+  useEffect(() => {
+    setGroup(urlGroup);
+    setFilterType(urlFilter);
+  }, [router.query])
 
   return (
     <>
