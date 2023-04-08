@@ -15,7 +15,6 @@ function Group(props: { name: string, children?: React.ReactNode }) {
     </div>
 }
 
-
 export default function Menu() {
     return <div className="overflow-auto grow">
         {/* User settings */}
@@ -25,5 +24,8 @@ export default function Menu() {
         <Group name="My Groups">
             <EditGroupsList />
         </Group>
+        <div className="m-6">
+            <a href="/api/auth/signout">Sign Out</a>
+        </div>
     </div>
 }
