@@ -18,7 +18,10 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 
 import { prisma } from "~/server/db";
 
-type CreateContextOptions = Record<string, never>;
+type CreateContextOptions = {
+  session: Session | null;
+};
+
 
 /**
  * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
@@ -28,10 +31,11 @@ type CreateContextOptions = Record<string, never>;
  * - testing, so we don't have to mock Next.js' req/res
  * - tRPC's `createSSGHelpers`, where we don't have req/res
  *
- * @see https://create.t3.gg/en/usage/trpc#-servertrpccontextts
+ * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
-const createInnerTRPCContext = (_opts: CreateContextOptions) => {
+const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
+    session: opts.session,
     prisma,
   };
 };
@@ -45,30 +49,6 @@ function generateRandomName() {
   return `${adjective} ${noun}`;
 }
 
-/**
- * Initialises a user
- */
-async function initUser(username: string) {
-  // Find the user from the dabase 
-  let user = await prisma.user.findUnique({
-    where: {
-      id: username
-    }
-  });
-  if(user == null) {
-    // Create a user, and user specific group
-    user = await prisma.user.create({
-      data: {
-        id: username,
-        name: generateRandomName(),
-        gold: 10
-      }
-    });
-
-  }
-  return user;
-
-}
 
 /**
  * This is the actual context you will use in your router. It will be used to process every request
@@ -77,12 +57,27 @@ async function initUser(username: string) {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const userId = opts.req.headers['x-forwarded-user'] as string ?? 'guest';
-  const user = await initUser(userId);
+  const { req, res } = opts;
+
+  // Get the session from the server using the getServerSession wrapper function
+  const session = await getServerAuthSession({ req, res });
+  const userId = session?.user?.email;
+  if(userId == null) {
+    throw Error("User not logged in");
+  }
+
+  // const userId = opts.req.headers['x-forwarded-user'] as string ?? 'guest';
+  // const user = await initUser(userId);
+  const context = createInnerTRPCContext({session});
+  const user = await context.prisma.user.findFirst({where: {email: userId}});
+
+  if(user == null) {
+    throw Error("Could not find user in DB.  Should have been created when logged in");
+  }
 
   return {
     user,
-    ...createInnerTRPCContext({})
+    ...context,
   }
 };
 
@@ -93,6 +88,9 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
  */
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
+import { getSession } from "next-auth/react";
+import { Session } from "next-auth";
+import { getServerAuthSession } from "../auth";
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,

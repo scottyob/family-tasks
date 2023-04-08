@@ -7,6 +7,9 @@ import { z } from "zod";
 const server = z.object({
   DATABASE_URL: z.string().url(),
   NODE_ENV: z.enum(["development", "test", "production"]),
+  GOOGLE_SECRET: z.string(),
+  GOOGLE_ID: z.string(),
+  SECRET: z.string(),
 });
 
 /**
@@ -26,6 +29,9 @@ const client = z.object({
 const processEnv = {
   DATABASE_URL: process.env.DATABASE_URL,
   NODE_ENV: process.env.NODE_ENV,
+  GOOGLE_SECRET: process.env.GOOGLE_SECRET,
+  GOOGLE_ID: process.env.GOOGLE_ID,
+  SECRET: process.env.SECRET,
   // NEXT_PUBLIC_CLIENTVAR: process.env.NEXT_PUBLIC_CLIENTVAR,
 };
 

@@ -32,11 +32,15 @@ function Name(props: {name: string}) {
   return <animated.span style={springProps}>{props.name}</animated.span>;
 }
 
-function Avatar(props: { user: User }) {
+function Avatar(props: { user: User, hideMoney?: boolean }) {
+  const money = props.hideMoney ? null : <div className="absolute p-1 top-0 right-0 bg-yellow-500/90 rounded-[12px]">{props.user.gold}</div>;
+
   return <div title={props.user.name ?? undefined} className="relative place-items-center">
-    <div className="absolute p-1 top-0 right-0 bg-yellow-500/90 rounded-[12px]">{props.user.gold}</div>
-    <Avvvatars style="shape" size={180 / 2} value={props.user.name ?? ''} />
+    {money}
+    <img className="w-24 h-24 rounded-full p-2" src={props.user?.image ?? undefined} alt={props.user?.name ?? undefined} />
   </div>
+
+// <Avvvatars style="shape" size={180 / 2} value={props.user.name ?? ''} />
 }
 
 function StatusSlide() {
@@ -45,15 +49,14 @@ function StatusSlide() {
   let avatarSettings = <></>;
   if(user != null) {
     avatarSettings = <div className='flex'>
-      <div className='m-5'>
-        <Avvvatars style="shape" size={50} value={user.name ?? user.id} />
-      </div>
+      <Avatar user={user} hideMoney={true} />
       <div className='text-left'>
         <div><strong>Gold: </strong>{user.gold}</div>
         {/* <div><strong>Tasks: </strong></div> */}
       </div>
     </div>
-  }
+
+}
   
 
   return <div className={titleClass}>

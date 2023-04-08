@@ -10,7 +10,7 @@ export default function GroupMembersList(props: { groupId: string }) {
     let members = <></>;
     if (membersQuery.data !== undefined) {
         const memberItems = membersQuery.data.map(m =>
-            <StandardListItem text={m.id} />
+            <StandardListItem text={m.email} />
         )
         members = <div>{memberItems}</div>
     }

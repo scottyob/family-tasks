@@ -11,6 +11,7 @@ import { vt323 } from "~/utils/fonts";
 import React, { useEffect } from "react";
 import { FilterContext, FilterContextType } from "~/utils/context";
 import { useRouter } from "next/router";
+import { SessionProvider } from "next-auth/react"
 import { TaskType } from "~/utils/enums";
 
 
@@ -32,7 +33,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   }, [router.query])
 
   return (
-    <>
+    <SessionProvider>
       <style jsx global>{`
         html {
         }
@@ -63,7 +64,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         </main>
       </FilterContext.Provider>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.3/flowbite.min.js"></script>
-    </>
+    </SessionProvider>
   );
   // return <Component {...pageProps} />;
 };
