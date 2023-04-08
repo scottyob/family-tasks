@@ -17,10 +17,10 @@ export default function GroupMembersList(props: { groupId: string }) {
 
     // add member callback
     const context = api.useContext();
-    const addMemberCallback = (name: string) => {
+    const addMemberCallback = (email: string) => {
         addMemberMutation.mutate({
             groupId: props.groupId,
-            userId: name
+            email: email
         }, {
             onSuccess: () => {
                 context.users.groupMembers.invalidate();

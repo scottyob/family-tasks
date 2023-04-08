@@ -14,11 +14,7 @@ import { useRouter } from "next/router";
 import { SessionProvider } from "next-auth/react"
 import { TaskType } from "~/utils/enums";
 import { useSession } from "next-auth/react"
-import { redirect } from "next/navigation"
 
-// const ContentContainer = ({pageProps}) => {
-//   return 
-// }
 
 function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
   const { status } = useSession()

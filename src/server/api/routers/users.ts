@@ -92,15 +92,25 @@ export const usersRouter = createTRPCRouter({
     }),
   addMemberToGroup: publicProcedure
     .input(z.object({
-      userId: z.string(),
+      email: z.string(),
       groupId: z.string()
     }))
     .mutation(async ({ input, ctx }) => {
       // TODO:  Secure endpoint
+
+
       return await ctx.prisma.usersOnGroups.create({
         data: {
-          groupId: input.groupId,
-          userId: input.userId,
+          group: {
+            connect: {
+              id: input.groupId
+            }
+          },
+          user: {
+            connect: {
+              email: input.email
+            }
+          }
         }
       })
     }),
