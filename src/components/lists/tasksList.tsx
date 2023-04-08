@@ -8,7 +8,7 @@ import ListContainer from "./listContainer";
 import { StandardListItem, TaskListItem } from "./listItems";
 
 interface Props {
-    groupId?: string;
+    group?: Group;
     type: TaskType;
 }
 
@@ -33,7 +33,7 @@ export default function TasksList(props: Props) {
 
     // Database interactions
     const tasksQuery = api.tasks.tasksForGroupByType.useQuery({
-        groupId: props.groupId,
+        groupId: props.group?.id,
         type: props.type
     });
     const addTaskMutator = api.tasks.addTaskWithTitle.useMutation();

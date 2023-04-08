@@ -10,21 +10,20 @@ import { api } from "~/utils/api";
 import { Group } from ".prisma/client";
 import { TaskType } from "~/utils/enums";
 import { useRouter } from "next/router";
-import { FilterContext } from "~/utils/context";
+import { useAppStore } from "~/utils/context";
 
 
 const Home: NextPage = () => {
   // The selected group to filter tasks out for
-  const {group, filterType} = React.useContext(FilterContext);
-  const taskType = filterType as TaskType ?? TaskType.Task;
+  const state = useAppStore();
 
   return (
     <>
         <div>
-          <StatusBar key={group} />
+          <StatusBar key={state.filterGroup?.id} />
         </div>
         <div className="overflow-auto grow">
-          <TaskList groupId={group} type={taskType} />
+          <TaskList group={state.filterGroup} type={state.filterType} />
         </div>
     </>
   );

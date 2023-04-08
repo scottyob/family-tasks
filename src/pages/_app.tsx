@@ -9,7 +9,7 @@ import Head from "next/head";
 import NavBar from "~/components/navbar";
 import { vt323 } from "~/utils/fonts";
 import React, { useEffect } from "react";
-import { FilterContext, FilterContextType } from "~/utils/context";
+import { useAppStore } from "~/utils/context";
 import { useRouter } from "next/router";
 import { SessionProvider } from "next-auth/react"
 import { TaskType } from "~/utils/enums";
@@ -17,20 +17,25 @@ import { TaskType } from "~/utils/enums";
 
 const MyApp: AppType = ({ Component, pageProps }) => {
   // Global context
+  const setFilters = useAppStore((state) => state.setFilters);
 
-  // Find the set group
+  const groupsQuery = api.users.groups.useQuery();
+
+  // Pull all the information from the router
   const router = useRouter();
   const urlGroup = router.query['group']?.[0];
-  const urlFilter = (router.query['filter'] as string | undefined ?? "Task");
-
-  const [filterType, setFilterType] = React.useState(urlFilter);
-  const [group, setGroup] = React.useState<string | undefined>(urlGroup);
-  const value: FilterContextType = { filterType, setFilterType, group, setGroup };
+  const urlFilter = (router.query['filter'] as string | undefined ?? "Task") as TaskType;
 
   useEffect(() => {
-    setGroup(urlGroup);
-    setFilterType(urlFilter);
-  }, [router.query])
+    const groups = groupsQuery.data;
+    if(groups == null) { return; }
+
+    const group = urlGroup == null ? undefined : groups.find((g) => g.id == urlGroup);
+    setFilters(urlFilter, group);
+
+    // setGroup(urlGroup);
+    // setFilterType(urlFilter);
+  }, [router.query, groupsQuery.data])
 
   return (
     <SessionProvider>
@@ -55,14 +60,12 @@ const MyApp: AppType = ({ Component, pageProps }) => {
         <link rel="icon" href="/favicon.ico" />
         {/* <meta name="apple-mobile-web-app-capable" content="yes"></meta> */}
       </Head>
-      <FilterContext.Provider value={value}>
         <main className="flex min-h-screen max-h-screen flex-col">
           <Component {...pageProps} />
           <div className="flex h-10 mb-5 p-1">
             <NavBar />
           </div>
         </main>
-      </FilterContext.Provider>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.3/flowbite.min.js"></script>
     </SessionProvider>
   );
