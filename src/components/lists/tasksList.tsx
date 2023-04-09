@@ -1,5 +1,5 @@
 import { Group, Task } from ".prisma/client";
-import { ModalFormContainer } from "family-tasks/src/components/forms/modalFormContainer";
+import { ModalFormContainer } from "~/components/forms/modalFormContainer";
 import React from "react";
 import { api } from "~/utils/api";
 import { TaskType } from "~/utils/enums";
@@ -88,7 +88,6 @@ export default function TasksList(props: Props) {
         <ModalFormContainer 
             shown={modifyTaskId !== undefined}
             setShown={(shown) => {if(!shown) {setModifyTaskId(undefined)}}}
-            unpadded
         >
             <TaskEdit task={modifyTaskId} onRequestClose={() => {setModifyTaskId(undefined);}} />
         </ModalFormContainer>

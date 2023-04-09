@@ -3,7 +3,6 @@ import { VT323 } from 'next/font/google'
 import { api } from "~/utils/api";
 import { useSpring, animated } from "react-spring";
 import Avvvatars from 'avvvatars-react';
-import { Swiper, SwiperSlide } from "swiper/react";
 import { Mousewheel, Pagination } from "swiper";
 import { Group, User } from '.prisma/client';
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
@@ -12,6 +11,10 @@ import { vt323 } from '~/utils/fonts';
 import React from 'react';
 import { useRouter } from 'next/router';
 import { useAppStore } from '~/utils/context';
+import { Swiper, SwiperSlide } from 'swiper/react';
+
+// Import Swiper styles
+import 'swiper/css';
 
 const titleClass = vt323.className + " text-center text-lg";
 type RouterOutput = inferRouterOutputs<AppRouter>;
@@ -103,12 +106,14 @@ export default function StatusBar(props: Props) {
   let groupIndex: (number | undefined) = groups?.findIndex(g => g.id === state.filterGroup?.id) ?? -1;
   groupIndex = groupIndex === -1 ? undefined : groupIndex + 1;
 
-  return <>
+  return <div>
     <Swiper
       direction={"horizontal"}
+      navigation
       slidesPerView={1}
       spaceBetween={30}
       initialSlide={groupIndex}
+      style={{zIndex: 0}}
       mousewheel={true}
       pagination={{
         clickable: true,
@@ -127,9 +132,9 @@ export default function StatusBar(props: Props) {
       modules={[Mousewheel, Pagination]}
       className="mySwiper"
     >
-      <SwiperSlide key="status" className='h-full'><StatusSlide /></SwiperSlide>
+      <SwiperSlide key="status" className=''><StatusSlide /></SwiperSlide>
       {groupSlides}
     </Swiper>
-  </>
+  </div>
 
 }
