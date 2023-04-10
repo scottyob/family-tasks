@@ -1,8 +1,10 @@
 import { Task } from ".prisma/client";
 import React from "react";
 import { BiCheck } from "react-icons/bi";
+import { HiOutlineCalendar } from "react-icons/hi2";
 import { VscCircleLargeFilled } from "react-icons/vsc";
 import { api } from "~/utils/api";
+const moment = require("moment");
 
 interface Props {
   text: string;
@@ -36,6 +38,7 @@ interface CheckedListItemProps {
 
 export function TaskListItem(props: CheckedListItemProps) {
   const updateFlagged = api.tasks.setCompleted.useMutation();
+  const { task } = props;
 
   let textColor = "";
   let leftIcon = <></>;
@@ -51,6 +54,7 @@ export function TaskListItem(props: CheckedListItemProps) {
     color = "bg-gray-400";
   }
 
+  // Task Toggle
   const context = api.useContext();
   const toggleFlagged = () => {
     updateFlagged.mutate(
@@ -60,11 +64,31 @@ export function TaskListItem(props: CheckedListItemProps) {
       },
       {
         onSuccess: () => {
-        context.tasks.invalidate();
+          context.tasks.invalidate();
         },
       }
     );
   };
+
+  // Task completion date shown
+  let due = null;
+  if (task.dueDate) {
+    const timeDelta = moment(task.dueDate).fromNow();
+    const hours = moment(task.dueDate).diff(moment(), "hours");
+    // alert(days);
+    let color = "text-gray-400";
+    if (hours < 0) {
+      color = "text-red-600";
+    } else if (hours < 48) {
+      color = "text-orange-400";
+    }
+    due = (
+      <div className={"flex space-x-1 text-xs font-bold " + color}>
+        <HiOutlineCalendar className="inline" size={16} />
+        <div>Due {timeDelta}</div>
+      </div>
+    );
+  }
 
   return (
     <div className="m-0.5 flex min-h-[60px]">
@@ -91,7 +115,13 @@ export function TaskListItem(props: CheckedListItemProps) {
         }}
       >
         <div className="flex grow place-self-center">
-          <div className={textColor}>{props.task.title}</div>
+          <div className="flex-row">
+            <div className={textColor}>{props.task.title}</div>
+            {task.notes ? (
+              <div className="pb-2 pt-2 text-xs">{task.notes}</div>
+            ) : null}
+            {due}
+          </div>
         </div>
       </div>
     </div>

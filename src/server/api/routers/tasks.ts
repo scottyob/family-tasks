@@ -13,8 +13,20 @@ export const tasksRouter = createTRPCRouter({
   edit: publicProcedure
     .input(TaskEditInput)
     .mutation(async ({ input, ctx }) => {
-        console.log(input);
-        await ctx.prisma.task.update({
+      let dueDate = input.dueDate;
+      if(dueDate) {
+        // Account for timezones
+        const offsetInMinutes = new Date().getTimezoneOffset();
+        dueDate.setTime(dueDate.getTime() + (offsetInMinutes * 60 * 1000));
+        
+        // Make due at the end of the date
+        dueDate.setHours(23);
+        dueDate.setMinutes(59);
+        dueDate.setSeconds(59);
+        dueDate.setMilliseconds(999); 
+      }
+
+      await ctx.prisma.task.update({
             where: {id: input.id},
             data: {
                 title: input.title,
