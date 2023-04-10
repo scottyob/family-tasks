@@ -28,6 +28,7 @@
     max-height: 85vh;
     padding: 25px;
     animation: contentShow 150ms cubic-bezier(0.16, 1, 0.3, 1);
+    overflow: scroll;
   }
   .DialogContent:focus {
     outline: none;
@@ -131,6 +132,11 @@
   }
   .Input:focus {
     box-shadow: 0 0 0 2px var(--violet8);
+  }
+
+  textarea.Input {
+    height: 80px;
+    padding: 10px;
   }
   
   @keyframes overlayShow {

@@ -11,16 +11,6 @@ interface ModalProps {
 }
 
 function ModalFormContainer(props: ModalProps) {
-  // const customStyles = {
-  //     content: {
-  //         top: '50%',
-  //         left: '50%',
-  //         right: 'auto',
-  //         bottom: 'auto',
-  //         marginRight: '-50%',
-  //         transform: 'translate(-50%, -50%)',
-  //     },
-  // };
   return (
     <Dialog.Root open={props.shown} onOpenChange={props.setShown}>
       <Dialog.Portal>
@@ -29,6 +19,10 @@ function ModalFormContainer(props: ModalProps) {
           {props.title ? (
             <Dialog.Title className="DialogTitle">{props.title}</Dialog.Title>
           ) : null}
+          <Dialog.Description className="DialogDescription">
+            Make changes.  Click save when you're done.
+          </Dialog.Description>
+
           {props.children}
           <Dialog.Close asChild>
             <button className="IconButton" aria-label="Close">

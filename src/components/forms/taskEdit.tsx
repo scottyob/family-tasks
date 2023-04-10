@@ -1,93 +1,122 @@
 import { Task } from ".prisma/client";
 import { VscTrash } from "react-icons/vsc";
+import { useTRPCForm } from "trpc-form";
 import { api } from "~/utils/api";
+import { useForm } from "react-hook-form";
+import { TaskEditInput } from "~/utils/inputs";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { BasicInput, useZodForm } from "./zodForm";
 
 interface Props {
-    task?: Task
-    onRequestClose?: () => void,
+  task?: Task;
+  onRequestClose?: () => void;
 }
 
 export default function TaskEdit(props: Props) {
-    const { task } = props;
+  const { task } = props;
+  if (task == null) {
+    return <></>;
+  }
+
+  // Delete task action
+  const deleteMutation = api.tasks.delete.useMutation();
+  const context = api.useContext();
+  const didDelete = () => {
     if (task == null) {
-        return <></>;
+      return;
     }
+    deleteMutation.mutate(
+      {
+        id: task.id,
+      },
+      {
+        onSuccess: () => {
+          context.tasks.invalidate();
+          if (props.onRequestClose != null) {
+            props.onRequestClose();
+          }
+        },
+      }
+    );
+  };
 
-    const deleteMutation = api.tasks.delete.useMutation();
+  // Edit task
+  const allGroups = api.users.groups.useQuery();
+  const editMutation = api.tasks.edit.useMutation();
+  const methods = useZodForm({
+    schema: TaskEditInput,
+    mode: "onChange",
+    defaultValues: {
+      id: task.id,
+    },
+  });
+  if (allGroups.isLoading) {
+    return <p>Loading...</p>;
+  }
 
-    const color = 'bg-green-400';
-    const textInputClass = `flex fill`
-    const labelClass = "mb-2 flex flex-col";
+  return (
+    <form
+      onSubmit={methods.handleSubmit(async (values) => {
+        console.log("Submitting ", values);
 
-    const context = api.useContext();
-    return <div className="">
-        <div className={"min-w-[350px] " + color} >
-            <div className="space-x-2 p-4 flex">
-                {/* Header */}
-                <h1 className="grow text-white-400">Edit {task.type}</h1>
-                <div>Cancel</div>
-                <div>Save</div>
-            </div>
-            <div className="p-4 flex flex-col">
-                {/* Important form items */}
-                <label className={labelClass}>
-                    <span>Title</span>
-                    <input type="text" id="title" className={textInputClass}></input>
-                </label>
+        editMutation.mutate(values, {
+          onSuccess: () => {
+            props.onRequestClose?.();
+            context.tasks.invalidate();
+          },
+        });
+      })}
+    >
+      <BasicInput
+        schema={TaskEditInput}
+        methods={methods}
+        fieldName="title"
+        value={task.title}
+      />
+      <BasicInput
+        schema={TaskEditInput}
+        methods={methods}
+        fieldName="notes"
+        inputType="textarea"
+        value={task.notes ?? ""}
+      />
+      <BasicInput
+        schema={TaskEditInput}
+        methods={methods}
+        fieldName="complete"
+        value={task.complete}
+      />
+      <BasicInput
+        schema={TaskEditInput}
+        methods={methods}
+        fieldName="dueDate"
+        value={task.dueDate}
+      />
+      <BasicInput
+        schema={TaskEditInput}
+        methods={methods}
+        fieldName="groupId"
+        value={task.groupId}
+        options={allGroups.data?.reduce((map, obj) => {
+          map.set(obj.id, obj.name);
+          return map;
+        }, new Map<string, string>())}
+      />
 
-                <label className={labelClass}>
-                    <span>Notes</span>
-                    <textarea id="notes" className={textInputClass}></textarea>
-                </label>
-
-            </div>
-        </div>
-        <div className="p-4 flex flex-col">
-            <label className={labelClass}>
-                <span>Group</span>
-                <input type="text" id="group" className={textInputClass}></input>
-            </label>
-
-            <label className={labelClass}>
-                <span>Assigned</span>
-                <input type="text" id="group" className={textInputClass}></input>
-            </label>
-
-            {/* Remove button that does not work */}
-            <a href="" className="text-red-800 text-center p-2" onClick={(event) => {
-                event.preventDefault();
-                if(task == null) {
-                    return;
-                }
-                deleteMutation.mutate({
-                    id: task.id
-                }, {
-                    onSuccess: () => {
-                        context.tasks.invalidate();
-                        if(props.onRequestClose != null) { props.onRequestClose() };
-                    }
-                })
-
-                // const userId = myUser.data?.id;
-                // if (userId == undefined) {
-                //     return;
-                // }
-                // removeFromGroupMutation.mutate({
-                //     userId: userId,
-                //     groupId: props.group.id
-                // }, {
-                //     onSuccess: () => {
-                //         context.users.groupMembers.invalidate();
-                //         context.users.groups.invalidate();
-                //         if (props.modalShown) {
-                //             props.modalShown(false);
-                //         }
-                //     }
-                // })
-            }}>
-                <VscTrash className="inline" /> Delete Task
-            </a>
-
-        </div>
-    </div>
+      <div
+        style={{ display: "flex", marginTop: 25, justifyContent: "flex-end" }}
+      >
+        <button className="Button text-red-700" onClick={didDelete}>
+          <VscTrash className="inline" /> Delete Task
+        </button>
+        <button
+          className="Button green"
+          type="submit"
+          disabled={editMutation.isLoading}
+        >
+          Save
+        </button>
+      </div>
+    </form>
+  );
 }

@@ -87,9 +87,10 @@ export default function TasksList(props: Props) {
     return <div className={containerStyle} >
         <ModalFormContainer 
             shown={modifyTaskId !== undefined}
+            title={"Edit " + modifyTaskId?.type}
             setShown={(shown) => {if(!shown) {setModifyTaskId(undefined)}}}
         >
-            <TaskEdit task={modifyTaskId} onRequestClose={() => {setModifyTaskId(undefined);}} />
+            <TaskEdit task={modifyTaskId} onRequestClose={() => setModifyTaskId(undefined)} />
         </ModalFormContainer>
         <div className="flex relative">
             <h2>{props.group?.name} {props.type.toString()}s</h2>
