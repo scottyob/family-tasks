@@ -7,5 +7,8 @@ export const TaskEditInput = z.object({
   complete: z.coerce.boolean(),
   dueDate: z.coerce.date().nullable(),
   groupId: z.string(),
-  userId: z.string().nullable(),
+  assignedToId: z.string().nullable(),
+  completionValue: z.coerce.number(),
+  offsetValue: z.coerce.number(),
+  offsetType: z.enum(["Same", "Increase", "Decrease"]),
 });

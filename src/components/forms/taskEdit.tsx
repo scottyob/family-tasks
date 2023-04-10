@@ -42,6 +42,8 @@ export default function TaskEdit(props: Props) {
 
   // Edit task
   const allGroups = api.users.groups.useQuery();
+  const allGroupMembers = api.users.groupMembers.useQuery({ id: task.groupId });
+
   const editMutation = api.tasks.edit.useMutation();
   const methods = useZodForm({
     schema: TaskEditInput,
@@ -57,12 +59,13 @@ export default function TaskEdit(props: Props) {
   return (
     <form
       onSubmit={methods.handleSubmit(async (values) => {
-        console.log("Submitting ", values);
-
         editMutation.mutate(values, {
           onSuccess: () => {
             props.onRequestClose?.();
             context.tasks.invalidate();
+          },
+          onError: (err) => {
+            alert(err.message);
           },
         });
       })}
@@ -101,6 +104,43 @@ export default function TaskEdit(props: Props) {
           map.set(obj.id, obj.name);
           return map;
         }, new Map<string, string>())}
+      />
+      <BasicInput
+        schema={TaskEditInput}
+        methods={methods}
+        fieldName="assignedToId"
+        value={task.assignedToId}
+        options={allGroupMembers.data?.reduce((map, obj) => {
+          map.set(obj.id, obj.name ?? "");
+          return map;
+        }, new Map<string, string>())}
+      />
+      <BasicInput
+        schema={TaskEditInput}
+        methods={methods}
+        fieldName="completionValue"
+        value={task.completionValue}
+      />
+      <BasicInput
+        schema={TaskEditInput}
+        methods={methods}
+        fieldName="offsetValue"
+        value={task.offsetValue}
+      />
+      <BasicInput
+        schema={TaskEditInput}
+        methods={methods}
+        fieldName="offsetType"
+        value={task.offsetType}
+        options={
+          new Map(
+            Object.entries({
+              Same: "Same",
+              Increase: "Increase",
+              Decrease: "Decrease",
+            })
+          )
+        }
       />
 
       <div

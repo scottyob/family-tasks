@@ -1,4 +1,5 @@
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Decimal } from "@prisma/client/runtime";
 import { useForm, UseFormProps } from "react-hook-form";
 import { z, ZodDate } from "zod";
 
@@ -19,7 +20,7 @@ export function BasicInput(props: {
   methods: ReturnType<typeof useZodForm>;
   schema: z.ZodObject<any, any>;
   fieldName: string;
-  value: string | number | boolean | Date | null;
+  value: string | number | boolean | Date | null | Decimal;
   inputType?: string;
   options?: Map<string, string>,
 }) {
@@ -27,7 +28,6 @@ export function BasicInput(props: {
   const errorMessage = methods.formState.errors[fieldName]?.message;
 
   let setValueFunction = (v: any) => v;
-  let additionalOptions = {};
 
   if (!inputType && schema.shape[fieldName]?._def.typeName == "ZodBoolean") {
     inputType = "checkbox";

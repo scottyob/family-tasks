@@ -89,5 +89,9 @@ model Task {
   assignedTo   User?   @relation(fields: [assignedToId], references: [id])
   assignedToId String?
 
+  completionValue Decimal?
+  offsetValue     Decimal?
+  offsetType      String   @default("Same") // Should be "Same", "Increase" or "Decrease"
+
   dueDate DateTime?
 }
