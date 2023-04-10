@@ -4,7 +4,6 @@ import { api } from "~/utils/api";
 import { useSpring, animated } from "react-spring";
 import Avvvatars from 'avvvatars-react';
 import { Mousewheel, Pagination } from "swiper";
-import { Group, User } from '.prisma/client';
 import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from '~/server/api/root';
 import { vt323 } from '~/utils/fonts';
@@ -15,6 +14,7 @@ import { Swiper, SwiperSlide } from 'swiper/react';
 
 // Import Swiper styles
 import 'swiper/css';
+import { Avatar } from './avatar';
 
 const titleClass = vt323.className + " text-center text-lg";
 type RouterOutput = inferRouterOutputs<AppRouter>;
@@ -33,17 +33,6 @@ function Name(props: {name: string}) {
   });
 
   return <animated.span style={springProps}>{props.name}</animated.span>;
-}
-
-function Avatar(props: { user: User, hideMoney?: boolean }) {
-  const money = props.hideMoney ? null : <div className="absolute p-1 top-0 right-0 bg-yellow-500/90 rounded-[12px]">{props.user.gold}</div>;
-
-  return <div title={props.user.name ?? undefined} className="relative place-items-center">
-    {money}
-    <img className="w-24 h-24 rounded-full p-2" src={props.user?.image ?? undefined} alt={props.user?.name ?? undefined} />
-  </div>
-
-// <Avvvatars style="shape" size={180 / 2} value={props.user.name ?? ''} />
 }
 
 function StatusSlide() {

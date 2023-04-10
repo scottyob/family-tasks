@@ -1,9 +1,10 @@
-import { Task } from ".prisma/client";
+import { Task, User } from ".prisma/client";
 import React from "react";
 import { BiCheck } from "react-icons/bi";
 import { HiOutlineCalendar } from "react-icons/hi2";
 import { VscCircleLargeFilled } from "react-icons/vsc";
 import { api } from "~/utils/api";
+import { Avatar } from "../avatar";
 const moment = require("moment");
 
 interface Props {
@@ -32,7 +33,7 @@ export function StandardListItem(props: Props) {
 }
 
 interface CheckedListItemProps {
-  task: Task;
+  task: Task & {assignedTo: User | null};
   onSelected?: () => void;
 }
 
@@ -115,12 +116,15 @@ export function TaskListItem(props: CheckedListItemProps) {
         }}
       >
         <div className="flex grow place-self-center">
-          <div className="flex-row">
+          <div className="flex-row grow">
             <div className={textColor}>{props.task.title}</div>
             {task.notes ? (
               <div className="pb-2 pt-2 text-xs">{task.notes}</div>
             ) : null}
             {due}
+          </div>
+          <div className="min-h-full">
+            {task.assignedTo ? <Avatar user={task.assignedTo} hideMoney={true} size="s" /> : null}
           </div>
         </div>
       </div>

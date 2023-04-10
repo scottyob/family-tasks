@@ -56,6 +56,13 @@ export default function TaskEdit(props: Props) {
     return <p>Loading...</p>;
   }
 
+  // Group members
+  const groupMembers = allGroupMembers.data?.reduce((map, obj) => {
+    map.set(obj.id, obj.name ?? "");
+    return map;
+  }, new Map<string, string>()) ?? new Map<string, string>();
+  groupMembers.set("", "---");
+
   return (
     <form
       onSubmit={methods.handleSubmit(async (values) => {
@@ -110,10 +117,7 @@ export default function TaskEdit(props: Props) {
         methods={methods}
         fieldName="assignedToId"
         value={task.assignedToId}
-        options={allGroupMembers.data?.reduce((map, obj) => {
-          map.set(obj.id, obj.name ?? "");
-          return map;
-        }, new Map<string, string>())}
+        options={groupMembers}
       />
       <BasicInput
         schema={TaskEditInput}

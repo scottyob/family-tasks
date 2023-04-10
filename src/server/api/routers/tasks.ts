@@ -34,7 +34,7 @@ export const tasksRouter = createTRPCRouter({
                 complete: input.complete,
                 dueDate: input.dueDate == undefined ? null : input.dueDate,
                 groupId: input.groupId,
-                assignedToId: input.assignedToId,
+                assignedToId: input.assignedToId ? input.assignedToId : null,
                 completionValue: input.completionValue,
                 offsetValue: input.offsetValue,
                 offsetType: input.offsetType,
@@ -58,6 +58,9 @@ export const tasksRouter = createTRPCRouter({
           groupId: input.groupId,
           type: input.type,
         },
+        include: {
+          assignedTo: true
+        }
       });
     }),
 
