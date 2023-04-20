@@ -5,6 +5,7 @@ import { HiOutlineCalendar } from "react-icons/hi2";
 import { VscCircleLargeFilled } from "react-icons/vsc";
 import { api } from "~/utils/api";
 import { Avatar } from "../avatar";
+import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 const moment = require("moment");
 
 interface Props {
@@ -33,7 +34,7 @@ export function StandardListItem(props: Props) {
 }
 
 interface CheckedListItemProps {
-  task: Task & {assignedTo: User | null};
+  task: Task & { assignedTo: User | null };
   onSelected?: () => void;
 }
 
@@ -66,16 +67,21 @@ export function TaskListItem(props: CheckedListItemProps) {
       {
         onSuccess: () => {
           context.tasks.invalidate();
+          context.users.invalidate();  // Money values has changed
         },
       }
     );
   };
 
   // Task completion date shown
-  let due = null;
+  let dueJsx = null;
   if (task.dueDate) {
-    const timeDelta = moment(task.dueDate).fromNow();
-    const hours = moment(task.dueDate).diff(moment(), "hours");
+    // debugger;
+    const due = moment(task.dueDate.toISOString().slice(0, 10)).endOf("day");
+    console.log("Due", due);
+    // debugger;
+    const timeDelta = due.fromNow();
+    const hours = due.diff(moment(), "hours");
     // alert(days);
     let color = "text-gray-400";
     if (hours < 0) {
@@ -83,13 +89,17 @@ export function TaskListItem(props: CheckedListItemProps) {
     } else if (hours < 48) {
       color = "text-orange-400";
     }
-    due = (
+    dueJsx = (
       <div className={"flex space-x-1 text-xs font-bold " + color}>
         <HiOutlineCalendar className="inline" size={16} />
         <div>Due {timeDelta}</div>
       </div>
     );
   }
+
+  // Task worth JSX
+  let worth = `- 🪙${task.completionValue}`;
+
 
   return (
     <div className="m-0.5 flex min-h-[60px]">
@@ -116,15 +126,19 @@ export function TaskListItem(props: CheckedListItemProps) {
         }}
       >
         <div className="flex grow place-self-center">
-          <div className="flex-row grow">
-            <div className={textColor}>{props.task.title}</div>
+          <div className="grow flex-row">
+            <div className={textColor}>{props.task.title} {worth}</div>
             {task.notes ? (
-              <div className="pb-2 pt-2 text-xs">{task.notes}</div>
+              <div className="prose pb-2 pt-2 text-xs">
+                <ReactMarkdown>{task.notes}</ReactMarkdown>
+              </div>
             ) : null}
-            {due}
+            {dueJsx}
           </div>
           <div className="min-h-full">
-            {task.assignedTo ? <Avatar user={task.assignedTo} hideMoney={true} size="s" /> : null}
+            {task.assignedTo ? (
+              <Avatar user={task.assignedTo} hideMoney={true} size="s" />
+            ) : null}
           </div>
         </div>
       </div>

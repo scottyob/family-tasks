@@ -43,7 +43,7 @@ function StatusSlide() {
     avatarSettings = <div className='flex'>
       <Avatar user={user} hideMoney={true} />
       <div className='text-left'>
-        <div><strong>Gold: </strong>{user.gold}</div>
+        <div><strong>💰 </strong>{user.gold}</div>
         {/* <div><strong>Tasks: </strong></div> */}
       </div>
     </div>

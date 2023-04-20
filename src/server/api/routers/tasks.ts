@@ -14,17 +14,6 @@ export const tasksRouter = createTRPCRouter({
     .input(TaskEditInput)
     .mutation(async ({ input, ctx }) => {
       let dueDate = input.dueDate;
-      if(dueDate) {
-        // Account for timezones
-        const offsetInMinutes = new Date().getTimezoneOffset();
-        dueDate.setTime(dueDate.getTime() + (offsetInMinutes * 60 * 1000));
-        
-        // Make due at the end of the date
-        dueDate.setHours(23);
-        dueDate.setMinutes(59);
-        dueDate.setSeconds(59);
-        dueDate.setMilliseconds(999); 
-      }
 
       await ctx.prisma.task.update({
             where: {id: input.id},
@@ -105,6 +94,7 @@ export const tasksRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
+      // Update the completed value of the task
       const ret = await ctx.prisma.task.update({
         where: {
           id: input.taskId,
@@ -113,6 +103,22 @@ export const tasksRouter = createTRPCRouter({
           complete: input.completed,
         },
       });
+
+      // See if there's any gold to be had
+      if(!ret.completionValue || !ret.complete) {
+        return ret;
+      }
+
+      // Update the user's gold
+      await ctx.prisma.user.update({
+        where: {
+          id: ctx.user.id
+        },
+        data: {
+          gold: {increment: ret.completionValue.toNumber()}
+        }
+      })
+
       return ret;
     }),
 });

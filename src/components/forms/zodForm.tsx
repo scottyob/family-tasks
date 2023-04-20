@@ -23,6 +23,7 @@ export function BasicInput(props: {
   value: string | number | boolean | Date | null | Decimal;
   inputType?: string;
   options?: Map<string, string>,
+  displayName?: string,
 }) {
   let { methods, fieldName, inputType, schema, value } = props;
   const errorMessage = methods.formState.errors[fieldName]?.message;
@@ -46,7 +47,6 @@ export function BasicInput(props: {
         value = value.toISOString().slice(0, 10);
       }
       setValueFunction = (v: any) => {
-        console.log("Running with", v);
         return v == "" ? null : v;
       };
     }
@@ -91,7 +91,7 @@ export function BasicInput(props: {
   return (
     <>
       <fieldset className="Fieldset">
-        <label className="Label">{fieldName}</label>
+        <label className="Label">{props.displayName ? props.displayName : fieldName}</label>
         {input}
       </fieldset>
       {errorMessage && <p className="text-red-700">{errorMessage as string}</p>}

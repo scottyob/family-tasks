@@ -63,6 +63,8 @@ export default function TaskEdit(props: Props) {
   }, new Map<string, string>()) ?? new Map<string, string>();
   groupMembers.set("", "---");
 
+  console.log("Form due date", task.dueDate?.toDateString());
+
   return (
     <form
       onSubmit={methods.handleSubmit(async (values) => {
@@ -81,12 +83,14 @@ export default function TaskEdit(props: Props) {
         schema={TaskEditInput}
         methods={methods}
         fieldName="title"
+        displayName="Title"
         value={task.title}
       />
       <BasicInput
         schema={TaskEditInput}
         methods={methods}
         fieldName="notes"
+        displayName="Notes"
         inputType="textarea"
         value={task.notes ?? ""}
       />
@@ -94,18 +98,21 @@ export default function TaskEdit(props: Props) {
         schema={TaskEditInput}
         methods={methods}
         fieldName="complete"
+        displayName="Complete"
         value={task.complete}
       />
       <BasicInput
         schema={TaskEditInput}
         methods={methods}
         fieldName="dueDate"
-        value={task.dueDate}
+        displayName="Due By"
+        value={task.dueDate ?? null}
       />
       <BasicInput
         schema={TaskEditInput}
         methods={methods}
         fieldName="groupId"
+        displayName="Group"
         value={task.groupId}
         options={allGroups.data?.reduce((map, obj) => {
           map.set(obj.id, obj.name);
@@ -116,6 +123,7 @@ export default function TaskEdit(props: Props) {
         schema={TaskEditInput}
         methods={methods}
         fieldName="assignedToId"
+        displayName="Assigned"
         value={task.assignedToId}
         options={groupMembers}
       />
@@ -123,25 +131,28 @@ export default function TaskEdit(props: Props) {
         schema={TaskEditInput}
         methods={methods}
         fieldName="completionValue"
+        displayName="Worth 🪙"
         value={task.completionValue}
       />
       <BasicInput
         schema={TaskEditInput}
         methods={methods}
         fieldName="offsetValue"
+        displayName="Penalty 🪙"
         value={task.offsetValue}
       />
       <BasicInput
         schema={TaskEditInput}
         methods={methods}
         fieldName="offsetType"
+        displayName="Pentalty"
         value={task.offsetType}
         options={
           new Map(
             Object.entries({
-              Same: "Same",
-              Increase: "Increase",
-              Decrease: "Decrease",
+              Same: "None",
+              Increase: "🪙 Increase",
+              Decrease: "🪙 Decrease",
             })
           )
         }
