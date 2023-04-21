@@ -1,11 +1,10 @@
-import { Group } from "@prisma/client";
+import { type Group } from "@prisma/client";
 import { VT323 } from "next/font/google";
-import React, { ReactNode, useState } from "react";
+import React from "react";
 import { VscTrash } from "react-icons/vsc";
-import Modal from 'react-modal';
 import { api } from "~/utils/api";
 import GroupMembersList from "../lists/groupMembersList";
-import { ModalFormContainer, ModalProps } from "./modalFormContainer";
+import { ModalFormContainer, type ModalProps } from "./modalFormContainer";
 
 const vt323 = VT323({
     weight: '400',
@@ -49,8 +48,10 @@ export default function EditGroup(props: Props) {
                     groupId: props.group.id
                 }, {
                     onSuccess: () => {
-                        context.users.groupMembers.invalidate();
-                        context.users.groups.invalidate();
+                        void Promise.all([
+                            context.users.groupMembers.invalidate(),
+                            context.users.groups.invalidate()
+                        ])
                         if(props.modalShown) {
                             props.modalShown(false);
                         }

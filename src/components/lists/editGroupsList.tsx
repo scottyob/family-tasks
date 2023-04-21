@@ -1,4 +1,4 @@
-import { Group } from "@prisma/client";
+import { type Group } from "@prisma/client";
 import { useState } from "react";
 import { api } from "~/utils/api";
 import EditGroup from "../forms/editGroup";
@@ -33,7 +33,7 @@ export default function EditGroupsList() {
             name: name
         }, {
             onSuccess: () => {
-                context.users.groups.invalidate();
+                void context.users.groups.invalidate();
                 setErrorMessage(undefined);
                 reset();
             },

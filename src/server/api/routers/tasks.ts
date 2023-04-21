@@ -13,8 +13,6 @@ export const tasksRouter = createTRPCRouter({
   edit: publicProcedure
     .input(TaskEditInput)
     .mutation(async ({ input, ctx }) => {
-      let dueDate = input.dueDate;
-
       await ctx.prisma.task.update({
             where: {id: input.id},
             data: {

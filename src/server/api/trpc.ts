@@ -40,16 +40,6 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
   };
 };
 
-
-function generateRandomName() {
-  const adjectives = ["happy", "sad", "angry", "playful", "sleepy", "crazy", "funny", "shy", "brave", "witty"];
-  const nouns = ["panda", "lion", "tiger", "elephant", "koala", "monkey", "kangaroo", "giraffe", "zebra", "hippo"];
-  const adjective = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const noun = nouns[Math.floor(Math.random() * nouns.length)];
-  return `${adjective} ${noun}`;
-}
-
-
 /**
  * This is the actual context you will use in your router. It will be used to process every request
  * that goes through your tRPC endpoint.
@@ -88,8 +78,7 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
  */
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
-import { getSession } from "next-auth/react";
-import { Session } from "next-auth";
+import { type Session } from "next-auth";
 import { getServerAuthSession } from "../auth";
 
 const t = initTRPC.context<typeof createTRPCContext>().create({

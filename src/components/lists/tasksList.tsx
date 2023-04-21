@@ -1,11 +1,11 @@
-import { Group, Task } from ".prisma/client";
+import { type Group, type Task } from ".prisma/client";
 import { ModalFormContainer } from "~/components/forms/modalFormContainer";
 import React from "react";
 import { api } from "~/utils/api";
-import { TaskType } from "~/utils/enums";
+import { type TaskType } from "~/utils/enums";
 import TaskEdit from "../forms/taskEdit";
 import ListContainer from "./listContainer";
-import { StandardListItem, TaskListItem } from "./listItems";
+import { TaskListItem } from "./listItems";
 
 interface Props {
     group?: Group;
@@ -77,7 +77,7 @@ export default function TasksList(props: Props) {
         }, {
             onSuccess: () => {
                 done();
-                context.tasks.invalidate();
+                void context.tasks.invalidate();
             }
         })
     }
@@ -87,10 +87,10 @@ export default function TasksList(props: Props) {
     return <div className={containerStyle} >
         <ModalFormContainer 
             shown={modifyTaskId !== undefined}
-            title={"Edit " + modifyTaskId?.type}
+            title={`Edit ${modifyTaskId?.type || ""}`}
             setShown={(shown) => {if(!shown) {setModifyTaskId(undefined)}}}
         >
-            <TaskEdit task={modifyTaskId} onRequestClose={() => setModifyTaskId(undefined)} />
+            {modifyTaskId != null ? <TaskEdit task={modifyTaskId} onRequestClose={() => setModifyTaskId(undefined)} /> : undefined}
         </ModalFormContainer>
         <div className="flex relative">
             <h2>{props.group?.name} {props.type.toString()}s</h2>

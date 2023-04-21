@@ -1,4 +1,4 @@
-import { Group, User } from '.prisma/client';
+import { type User } from '.prisma/client';
 
 export function Avatar(props: { user: User, hideMoney?: boolean, size?: "s" | "l" }) {
     const money = props.hideMoney ? null : <div className="absolute p-1 top-0 right-0 bg-yellow-500/90 rounded-[12px]">{props.user.gold}</div>;
@@ -14,6 +14,7 @@ export function Avatar(props: { user: User, hideMoney?: boolean, size?: "s" | "l
 
     return <div title={props.user.name ?? undefined} className="relative min-h-full justify-items-center place-items-center flex">
       {money}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <img className={size + " rounded-full p-2 "} src={props.user?.image ?? undefined} alt={props.user?.name ?? undefined} />
     </div>
   }

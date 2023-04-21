@@ -10,7 +10,7 @@ export default function GroupMembersList(props: { groupId: string }) {
     let members = <></>;
     if (membersQuery.data !== undefined) {
         const memberItems = membersQuery.data.map(m =>
-            <StandardListItem text={m.email} />
+            <StandardListItem key={m.id} text={m.email} />
         )
         members = <div>{memberItems}</div>
     }
@@ -23,7 +23,9 @@ export default function GroupMembersList(props: { groupId: string }) {
             email: email
         }, {
             onSuccess: () => {
-                context.users.groupMembers.invalidate();
+                void (async () => {
+                    await context.users.groupMembers.invalidate();
+                })()
             }
         });
     }

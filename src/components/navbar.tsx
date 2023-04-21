@@ -24,7 +24,7 @@ export default function NavBar() {
         let suffix = "";
         if (match) {
             const groupId = match[2];
-            suffix = "/" + groupId;
+            suffix = "/" + (groupId || "");
         }
         setSuffix(suffix);
     }, [router.asPath, router.query]);

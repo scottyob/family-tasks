@@ -1,10 +1,8 @@
 
-import { VT323 } from 'next/font/google'
 import { api } from "~/utils/api";
 import { useSpring, animated } from "react-spring";
-import Avvvatars from 'avvvatars-react';
 import { Mousewheel, Pagination } from "swiper";
-import type { inferRouterInputs, inferRouterOutputs } from '@trpc/server';
+import type { inferRouterOutputs } from '@trpc/server';
 import type { AppRouter } from '~/server/api/root';
 import { vt323 } from '~/utils/fonts';
 import React from 'react';
@@ -44,7 +42,6 @@ function StatusSlide() {
       <Avatar user={user} hideMoney={true} />
       <div className='text-left'>
         <div><strong>💰 </strong>{user.gold}</div>
-        {/* <div><strong>Tasks: </strong></div> */}
       </div>
     </div>
 
@@ -71,11 +68,8 @@ function GroupSlide(props: { group: RouterOutput['users']['groups'][0] }) {
   </div>
 }
 
-interface Props {
 
-}
-
-export default function StatusBar(props: Props) {
+export default function StatusBar() {
   const state = useAppStore();
   const router  = useRouter();
 
@@ -115,7 +109,8 @@ export default function StatusBar(props: Props) {
         if(group?.id != null) {
           grp = `/${group.id}`;
         }
-        router.push(`/${state.filterType}${grp}`);
+        
+        void router.push(`/${state.filterType}${grp}`);
         
       }}
       modules={[Mousewheel, Pagination]}

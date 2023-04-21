@@ -1,4 +1,4 @@
-import { ReactNode, useState } from "react";
+import { type ReactNode, useState } from "react";
 
 interface Props {
     addPlaceholder?: string;
@@ -44,7 +44,7 @@ export default function ListContainer(props: Props) {
             /></form>;
     }
 
-    return <div className={"grow min-h-[300px] bg-gray-100 flex flex-col " + props.additionalClassNames ?? ""}>
+    return <div className={"grow min-h-[300px] bg-gray-100 flex flex-col " + (props.additionalClassNames ?? "")}>
         {addInput}
         {errorMsg}
         {props.children}

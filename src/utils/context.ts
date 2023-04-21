@@ -1,7 +1,6 @@
-import React from "react";
 import { create } from 'zustand'
 import {TaskType} from './enums'
-import { Group } from "@prisma/client";
+import { type Group } from "@prisma/client";
 
 
 interface AppState {
@@ -14,7 +13,7 @@ interface AppState {
 
 export const useAppStore = create<AppState>()((set) => ({
     filterType: TaskType.Daily,
-    setFilters: (taskType, group) => set((state) => ({ filterType: taskType, group })),
-    setGroup: (to) => set((state) => ({filterGroup: to})),
+    setFilters: (taskType, group) => set(() => ({ filterType: taskType, group })),
+    setGroup: (to) => set(() => ({filterGroup: to})),
   }))
   

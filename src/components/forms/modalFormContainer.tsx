@@ -1,5 +1,4 @@
-import React, { ReactNode, useState } from "react";
-import Modal from "react-modal";
+import React, { type ReactNode } from "react";
 import * as Dialog from "@radix-ui/react-dialog";
 import { Cross2Icon } from "@radix-ui/react-icons";
 
@@ -20,7 +19,7 @@ function ModalFormContainer(props: ModalProps) {
             <Dialog.Title className="DialogTitle">{props.title}</Dialog.Title>
           ) : null}
           <Dialog.Description className="DialogDescription">
-            Make changes.  Click save when you're done.
+            {"Make changes.  Click save when you're done."}
           </Dialog.Description>
 
           {props.children}
@@ -34,11 +33,6 @@ function ModalFormContainer(props: ModalProps) {
     </Dialog.Root>
   );
 
-  // <Modal ariaHideApp={false} style={customStyles} contentLabel="Label" isOpen={props.shown} onRequestClose={() => {
-  //     props.setShown(false);
-  // }}>
-  //     {props.children}
-  // </Modal>
 }
 
 export { ModalFormContainer };

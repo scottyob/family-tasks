@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-sync-scripts */
 import { type AppType } from "next/app";
 
 import { api } from "~/utils/api";
@@ -8,11 +9,11 @@ import 'swiper/css';
 import Head from "next/head";
 import NavBar from "~/components/navbar";
 import { vt323 } from "~/utils/fonts";
-import React, { Fragment, ReactNode, useEffect } from "react";
+import React, { Fragment, type ReactNode, useEffect } from "react";
 import { useAppStore } from "~/utils/context";
 import { useRouter } from "next/router";
 import { SessionProvider } from "next-auth/react"
-import { TaskType } from "~/utils/enums";
+import { type TaskType } from "~/utils/enums";
 import { useSession } from "next-auth/react"
 
 
@@ -21,7 +22,7 @@ function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
   const router = useRouter();
 
   if (status == "unauthenticated") {
-    router.push("/api/auth/signin");
+    void router.push("/api/auth/signin");
     return null;
   }
   if (status == "loading") {
@@ -29,7 +30,7 @@ function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
   }
   // TODO:  Move this to somewhere more appropriate
   if (router.asPath == "/") {
-    router.push("/Task");
+    void router.push("/Task");
   }
 
   return <Fragment>{props.children}</Fragment>;
@@ -55,7 +56,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
     const group = urlGroup == null ? undefined : groups.find((g) => g.id == urlGroup);
     setFilters(urlFilter, group);
 
-  }, [router.query, groupsQuery.data])
+  }, [router.query, groupsQuery.data, urlGroup, setFilters, urlFilter])
 
   return (
     <SessionProvider>

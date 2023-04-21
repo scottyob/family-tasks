@@ -1,12 +1,11 @@
-import { Task, User } from ".prisma/client";
+import { type Task, type User } from ".prisma/client";
 import React from "react";
 import { BiCheck } from "react-icons/bi";
 import { HiOutlineCalendar } from "react-icons/hi2";
-import { VscCircleLargeFilled } from "react-icons/vsc";
 import { api } from "~/utils/api";
 import { Avatar } from "../avatar";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
-const moment = require("moment");
+import moment from "moment";
 
 interface Props {
   text: string;
@@ -17,7 +16,7 @@ export function StandardListItem(props: Props) {
   return (
     <div
       className="m-0.5 flex min-h-[40px]"
-      onClick={(e) => {
+      onClick={() => {
         if (props.selected != null) {
           props.selected();
         }
@@ -66,8 +65,8 @@ export function TaskListItem(props: CheckedListItemProps) {
       },
       {
         onSuccess: () => {
-          context.tasks.invalidate();
-          context.users.invalidate();  // Money values has changed
+          void context.tasks.invalidate();
+          void context.users.invalidate();  // Money values has changed
         },
       }
     );
@@ -76,13 +75,10 @@ export function TaskListItem(props: CheckedListItemProps) {
   // Task completion date shown
   let dueJsx = null;
   if (task.dueDate) {
-    // debugger;
     const due = moment(task.dueDate.toISOString().slice(0, 10)).endOf("day");
     console.log("Due", due);
-    // debugger;
     const timeDelta = due.fromNow();
     const hours = due.diff(moment(), "hours");
-    // alert(days);
     let color = "text-gray-400";
     if (hours < 0) {
       color = "text-red-600";
@@ -98,7 +94,7 @@ export function TaskListItem(props: CheckedListItemProps) {
   }
 
   // Task worth JSX
-  let worth = `- 🪙${task.completionValue}`;
+  const worth = `- 🪙${task.completionValue?.toString() || ''}`;
 
 
   return (
