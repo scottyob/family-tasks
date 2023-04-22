@@ -15,6 +15,7 @@ import { useRouter } from "next/router";
 import { SessionProvider } from "next-auth/react"
 import { type TaskType } from "~/utils/enums";
 import { useSession } from "next-auth/react"
+import { type Session } from "next-auth";
 
 
 function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
@@ -36,7 +37,7 @@ function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
   return <Fragment>{props.children}</Fragment>;
 }
 
-const MyApp: AppType = ({ Component, pageProps }) => {
+const MyApp: AppType<{ session: Session | null}> = ({ Component, pageProps: { session, ...pageProps} }) => {
   // Global context
   const setFilters = useAppStore((state) => state.setFilters);
 
@@ -59,7 +60,7 @@ const MyApp: AppType = ({ Component, pageProps }) => {
   }, [router.query, groupsQuery.data, urlGroup, setFilters, urlFilter])
 
   return (
-    <SessionProvider>
+    <SessionProvider session={session}>
       <style jsx global>{`
         html {
         }
