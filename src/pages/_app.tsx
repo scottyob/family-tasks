@@ -79,6 +79,8 @@ const MyApp: AppType<{ session: Session | null}> = ({ Component, pageProps: { se
       <Head>
         <title>Family Tasks</title>
         <meta name="description" content="Tasks for the family" />
+        <link rel="manifest" href="/manifest.json" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
         <link rel="icon" href="/favicon.ico" />
         {/* <meta name="apple-mobile-web-app-capable" content="yes"></meta> */}
       </Head>

@@ -1,34 +1,46 @@
-# Create T3 App
+# Tasking
 
-This is a [T3 Stack](https://create.t3.gg/) project bootstrapped with `create-t3-app`.
+Family tasks is a family oriented to-do list.  The intent is to reward members of a household for completing tasks with Coins!
 
-## What's next? How do I make an app with this?
+Tasks can be recurring, assigned to a member.. It's just yet another to-do app!
 
-We try to keep this project as simple as possible, so you can start with just the scaffolding we set up for you, and add additional things later when they become necessary.
+# Deploying
+I use docker.  The following role does the trick for me:
 
-If you are not familiar with the different technologies used in this project, please refer to the respective docs. If you still are in the wind, please join our [Discord](https://t3.gg/discord) and ask for help.
+```
+---
+- name: Start the family tasks server
+  docker_container:
+    name: family_tasks
+    image: scottyob/family-tasks
+    pull: true
+    state: started
+    restart_policy: unless-stopped
+    volumes:
+      - "/docker/{{ inventory_hostname }}/tasks:/app/db"
+    ports:
+      - '3002:3000'
+    env:
+      DATABASE_URL: "file:./db/db.sqlite"
+      GOOGLE_SECRET: "...."
+      GOOGLE_ID: "...."
+      SECRET: "...."
+      NEXTAUTH_URL: https://tasks.home.scottyob.com/
+```
 
-- [Next.js](https://nextjs.org)
-- [NextAuth.js](https://next-auth.js.org)
-- [Prisma](https://prisma.io)
-- [Tailwind CSS](https://tailwindcss.com)
-- [tRPC](https://trpc.io)
 
-## Learn More
+## Post-deploy.  Setting up the database
 
-To learn more about the [T3 Stack](https://create.t3.gg/), take a look at the following resources:
-
-- [Documentation](https://create.t3.gg/)
-- [Learn the T3 Stack](https://create.t3.gg/en/faq#what-learning-resources-are-currently-available) — Check out these awesome tutorials
-
-You can check out the [create-t3-app GitHub repository](https://github.com/t3-oss/create-t3-app) — your feedback and contributions are welcome!
-
-## How do I deploy this?
-
-Follow our deployment guides for [Vercel](https://create.t3.gg/en/deployment/vercel), [Netlify](https://create.t3.gg/en/deployment/netlify) and [Docker](https://create.t3.gg/en/deployment/docker) for more information.
+The first time launching, you'll need to setup the database and have that generated.
+```
+$ sudo docker exec  -it family_tasks /bin/sh
+/app $ npx prisma db push --schema ./node_modules/.prisma/client/schema.prisma --skip-generate
+/app $ mv ./node_modules/.prisma/client/db/db.sqlite db/db.sqlite 
+```
 
 
-## TODO
-- Avatars!!
-- Enable you to view the groups
-  - See the coin in those groups
+# Updating & pushing to docker cloud
+```
+$ docker build  -t scottyob/family-tasks --build-arg NEXT_PUBLIC_CLIENTVAR=clientvar .
+$ docker push scottyob/family-tasks:latest
+```
