@@ -16,6 +16,7 @@ import { SessionProvider } from "next-auth/react"
 import { type TaskType } from "~/utils/enums";
 import { useSession } from "next-auth/react"
 import { type Session } from "next-auth";
+import Link from "next/link";
 
 
 function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
@@ -23,8 +24,11 @@ function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
   const router = useRouter();
 
   if (status == "unauthenticated") {
-    void router.push("/api/auth/signin");
-    return null;
+    return <div className="flex self-center flex-1 justify-center items-center">
+      <div>
+        Please <Link className="text-lime-500 text-lg" href="/api/auth/signin">Login</Link>
+      </div>
+    </div>
   }
   if (status == "loading") {
     return <p>Loading...</p>
