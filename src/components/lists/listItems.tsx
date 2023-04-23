@@ -6,7 +6,7 @@ import { api } from "~/utils/api";
 import { Avatar } from "../avatar";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 import moment from "moment";
-import { TaskOffsetType } from "~/utils/enums";
+import { TaskWorth } from "~/utils/taskLib";
 
 interface Props {
   text: string;
@@ -86,6 +86,7 @@ export function TaskListItem(props: CheckedListItemProps) {
       color = "bg-red-400 "
     } else if (hours < 48) {
       dateColor = "text-orange-400";
+      color = "bg-orange-400";
     }
     dueJsx = (
       <div className={"flex space-x-1 text-xs font-bold " + dateColor}>
@@ -96,34 +97,19 @@ export function TaskListItem(props: CheckedListItemProps) {
   }
 
   // Task worth JSX
-  let totalWorth = 0;
-  if (task.completionValue != null) {
-    const completionValue = Number(task.completionValue);
-    totalWorth = completionValue;
-  }
-  // let totalWorth = task.completionValue != null ? task.completionValue.toNumber() : 0;
-  let operator = "+";
-  switch (task.offsetType as TaskOffsetType) {
-    case TaskOffsetType.Increase:
-      totalWorth += Number(task.currentOffset);
-      break;
-    case TaskOffsetType.Decrease:
-      totalWorth -= Number(task.currentOffset);
-      totalWorth = totalWorth < 0 ? 0 : totalWorth;
-      operator = "-"
-      break;
-  }
+  const taskWorth = TaskWorth(task);
+
   let worth = <span>- 🪙{task.completionValue?.toString() || ''}</span>;
-  if (totalWorth != Number(task.completionValue)) {
+  if (taskWorth.penalty > 0) {
     worth = <>
-      <span>- 🪙{totalWorth} </span>
+      <span>- 🪙{taskWorth.total?.toString()} </span>
       <div className="inline text-[10px] align-text-top">
         <span>({task.completionValue?.toString() || ''}</span>
-        <span className={operator == "-" ? "text-red-600" : "text-green-500"}> {operator} {Number(task.currentOffset)}</span>)
+        <span className={taskWorth.operator == "-" ? "text-red-600" : "text-green-500"}> {taskWorth.operator} {taskWorth.penalty}</span>)
       </div>
     </>;
   }
-  if (totalWorth <= 0) {
+  if (taskWorth.total <= 0) {
     worth = <></>
   }
 

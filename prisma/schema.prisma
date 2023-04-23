@@ -93,7 +93,6 @@ model Task {
   completionValue Decimal?
   offsetValue     Decimal?
   offsetType      String   @default("Same") // Should be "Same", "Increase" or "Decrease"
-  currentOffset   Decimal @default(0)  // The current offset (should increase or decrease)
 
   dueDate DateTime?
   recurringType  String    @default("Once") // should be "Once", "From Due Date", "After Completion"
