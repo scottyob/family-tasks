@@ -58,9 +58,20 @@ export default function TasksList(props: Props) {
                 // handle invalid filter values here, if desired
                 break;
         }
+        // Sort em
+        tasks = tasks.sort((a, b) => {
+            if (!a.dueDate && !b.dueDate) {
+                return 0;
+            } else if (!a.dueDate) {
+                return 1;
+            } else if (!b.dueDate) {
+                return -1;
+            } else {
+                return a.dueDate.getTime() - b.dueDate.getTime();
+            }
+        });
 
-
-        tasksList = tasks.map(t => <TaskListItem key={t.id} task={t} onSelected={() => {setModifyTaskId(t)}} />);
+        tasksList = tasks.map(t => <TaskListItem key={t.id} task={t} onSelected={() => { setModifyTaskId(t) }} />);
     }
 
     // Callback for adding a quick task
@@ -85,10 +96,10 @@ export default function TasksList(props: Props) {
     // Render the list of tasks
     const addPlaceholder = props.group == null ? undefined : "Add a " + props.type.toString();
     return <div className={containerStyle} >
-        <ModalFormContainer 
+        <ModalFormContainer
             shown={modifyTaskId !== undefined}
             title={`Edit ${modifyTaskId?.type || ""}`}
-            setShown={(shown) => {if(!shown) {setModifyTaskId(undefined)}}}
+            setShown={(shown) => { if (!shown) { setModifyTaskId(undefined) } }}
         >
             {modifyTaskId != null ? <TaskEdit task={modifyTaskId} onRequestClose={() => setModifyTaskId(undefined)} /> : undefined}
         </ModalFormContainer>

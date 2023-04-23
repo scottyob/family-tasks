@@ -8,6 +8,9 @@ WORKDIR /app
 
 COPY prisma ./
 
+# Copy our cron job over
+COPY cron.mjs ./
+
 # Install dependencies based on the preferred package manager
 
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml\* ./
@@ -61,3 +64,4 @@ EXPOSE 3000
 ENV PORT 3000
 
 CMD ["node", "server.js"]
+# CMD ["sh", "-c", "node server.js & ./node_modules/ts-node/dist/bin.js cron.mjs"]

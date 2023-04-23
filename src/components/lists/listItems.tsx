@@ -6,6 +6,7 @@ import { api } from "~/utils/api";
 import { Avatar } from "../avatar";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
 import moment from "moment";
+import { TaskOffsetType } from "~/utils/enums";
 
 interface Props {
   text: string;
@@ -79,14 +80,15 @@ export function TaskListItem(props: CheckedListItemProps) {
     console.log("Due", due);
     const timeDelta = due.fromNow();
     const hours = due.diff(moment(), "hours");
-    let color = "text-gray-400";
+    let dateColor = "text-gray-400";
     if (hours < 0) {
-      color = "text-red-600";
+      dateColor = "text-red-600";
+      color = "bg-red-400 "
     } else if (hours < 48) {
-      color = "text-orange-400";
+      dateColor = "text-orange-400";
     }
     dueJsx = (
-      <div className={"flex space-x-1 text-xs font-bold " + color}>
+      <div className={"flex space-x-1 text-xs font-bold " + dateColor}>
         <HiOutlineCalendar className="inline" size={16} />
         <div>Due {timeDelta}</div>
       </div>
@@ -94,7 +96,36 @@ export function TaskListItem(props: CheckedListItemProps) {
   }
 
   // Task worth JSX
-  const worth = `- 🪙${task.completionValue?.toString() || ''}`;
+  let totalWorth = 0;
+  if (task.completionValue != null) {
+    const completionValue = Number(task.completionValue);
+    totalWorth = completionValue;
+  }
+  // let totalWorth = task.completionValue != null ? task.completionValue.toNumber() : 0;
+  let operator = "+";
+  switch (task.offsetType as TaskOffsetType) {
+    case TaskOffsetType.Increase:
+      totalWorth += Number(task.currentOffset);
+      break;
+    case TaskOffsetType.Decrease:
+      totalWorth -= Number(task.currentOffset);
+      totalWorth = totalWorth < 0 ? 0 : totalWorth;
+      operator = "-"
+      break;
+  }
+  let worth = <span>- 🪙{task.completionValue?.toString() || ''}</span>;
+  if (totalWorth != Number(task.completionValue)) {
+    worth = <>
+      <span>- 🪙{totalWorth} </span>
+      <div className="inline text-[10px] align-text-top">
+        <span>({task.completionValue?.toString() || ''}</span>
+        <span className={operator == "-" ? "text-red-600" : "text-green-500"}> {operator} {Number(task.currentOffset)}</span>)
+      </div>
+    </>;
+  }
+  if (totalWorth <= 0) {
+    worth = <></>
+  }
 
 
   return (

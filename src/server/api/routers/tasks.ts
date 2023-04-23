@@ -2,7 +2,6 @@ import { z } from "zod";
 import { RecurringType, TaskOffsetType, TaskType } from "~/utils/enums";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TaskEditInput } from "~/utils/inputs";
-import moment from "moment";
 
 /**
  * Router for anything to do with users and groups
@@ -28,6 +27,7 @@ export const tasksRouter = createTRPCRouter({
           offsetType: input.offsetType,
           recurringType: input.repeatDays > 0 ? input.recurringType : "Once",
           repeatDays: input.repeatDays || null,
+          currentOffset: input.currentOffset
         }
       })
     }),
