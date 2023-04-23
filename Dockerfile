@@ -8,9 +8,6 @@ WORKDIR /app
 
 COPY prisma ./
 
-# Copy our cron job over
-COPY cron.mjs ./
-
 # Install dependencies based on the preferred package manager
 
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml\* ./
