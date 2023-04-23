@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { TaskType } from "~/utils/enums";
+import { RecurringType, TaskOffsetType, TaskType } from "~/utils/enums";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TaskEditInput } from "~/utils/inputs";
+import moment from "moment";
 
 /**
  * Router for anything to do with users and groups
@@ -14,19 +15,21 @@ export const tasksRouter = createTRPCRouter({
     .input(TaskEditInput)
     .mutation(async ({ input, ctx }) => {
       await ctx.prisma.task.update({
-            where: {id: input.id},
-            data: {
-                title: input.title,
-                notes: input.notes,
-                complete: input.complete,
-                dueDate: input.dueDate == undefined ? null : input.dueDate,
-                groupId: input.groupId,
-                assignedToId: input.assignedToId ? input.assignedToId : null,
-                completionValue: input.completionValue,
-                offsetValue: input.offsetValue,
-                offsetType: input.offsetType,
-            }
-        })
+        where: { id: input.id },
+        data: {
+          title: input.title,
+          notes: input.notes,
+          complete: input.complete,
+          dueDate: input.dueDate == undefined ? null : input.dueDate,
+          groupId: input.groupId,
+          assignedToId: input.assignedToId ? input.assignedToId : null,
+          completionValue: input.completionValue,
+          offsetValue: input.offsetValue,
+          offsetType: input.offsetType,
+          recurringType: input.repeatDays > 0 ? input.recurringType : "Once",
+          repeatDays: input.repeatDays || null,
+        }
+      })
     }),
 
   /**
@@ -92,20 +95,62 @@ export const tasksRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ input, ctx }) => {
-      // Update the completed value of the task
-      const ret = await ctx.prisma.task.update({
+      // The user has completed (or unflagged-completed) a task.
+      // Load up the task
+      const task = await ctx.prisma.task.findUniqueOrThrow({
         where: {
-          id: input.taskId,
-        },
-        data: {
-          complete: input.completed,
-        },
+          id: input.taskId
+        }
       });
-
-      // See if there's any gold to be had
-      if(!ret.completionValue || !ret.complete) {
-        return ret;
+      if (!input.completed) {
+        // User is flagging a task as not having been completed
+        return await ctx.prisma.task.update({
+          where: {
+            id: task.id
+          },
+          data: {
+            complete: false
+          }
+        });
       }
+
+      const recurringType = task.recurringType as RecurringType;
+      let complete = false;
+      let dueDate = undefined;
+      // The task has been complete
+      switch (recurringType) {
+        case RecurringType.Once:
+          complete = true;
+          break;
+        case RecurringType.AfterCompletion:
+          // create a new Date object for the current date and time
+          const currentDate = new Date();
+          
+          // get the UTC offset in milliseconds for the America/Los_Angeles time zone
+          const offset = -480; // PST (UTC-8) without DST
+          
+          // create a new Date object for the America/Los_Angeles time zone
+          const localDate = new Date(currentDate.getTime() + offset * 60 * 1000);
+          localDate.setDate(localDate.getDate() + (task.repeatDays?.toNumber() ?? 0));
+          dueDate = localDate;
+          break;
+        case RecurringType.FromDueDate:
+          dueDate = task.dueDate;
+          if(dueDate == null) {
+            complete = true;
+            break;
+          }
+          dueDate.setDate(dueDate.getDate() + (task?.repeatDays?.toNumber() ?? 0));
+      }
+
+      // Find out the task's worth
+      let worth = task.completionValue?.toNumber() ?? 0;
+      let offset = task.currentOffset.toNumber();
+      if(task.offsetType as TaskOffsetType == TaskOffsetType.Decrease) {
+        offset = offset * -1;
+      }
+      worth += offset;
+      worth = worth > 0 ? worth : 0;
 
       // Update the user's gold
       await ctx.prisma.user.update({
@@ -113,10 +158,20 @@ export const tasksRouter = createTRPCRouter({
           id: ctx.user.id
         },
         data: {
-          gold: {increment: ret.completionValue.toNumber()}
+          gold: { increment: worth }
         }
       })
 
-      return ret;
+      // Update the task
+      return await ctx.prisma.task.update({
+        where: {
+          id: input.taskId,
+        },
+        data: {
+          complete: complete,
+          currentOffset: 0,
+          dueDate: dueDate,
+        },
+      });
     }),
 });

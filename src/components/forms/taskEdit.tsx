@@ -58,20 +58,20 @@ export default function TaskEdit(props: Props) {
 
   return (
     <form
-    onSubmit={(event) => {
-      event.preventDefault();
-      void methods.handleSubmit((values) => {
-        editMutation.mutate(values, {
-          onSuccess: () => {
-            props.onRequestClose?.();
-            void context.tasks.invalidate();
-          },
-          onError: (err) => {
-            alert(err.message);
-          },
-        });
-      })(event);
-    }}    >
+      onSubmit={(event) => {
+        event.preventDefault();
+        void methods.handleSubmit((values) => {
+          editMutation.mutate(values, {
+            onSuccess: () => {
+              props.onRequestClose?.();
+              void context.tasks.invalidate();
+            },
+            onError: (err) => {
+              alert(err.message);
+            },
+          });
+        })(event);
+      }}    >
       <BasicInput
         schema={TaskEditInput}
         methods={methods}
@@ -151,6 +151,28 @@ export default function TaskEdit(props: Props) {
         }
       />
 
+      {/* Custom form element for setting up recuring */}
+      <fieldset className="Fieldset">
+        <label className="Label block">Recurring</label>
+        <div className="relative mt-2 rounded-md shadow-sm">
+          {/* Recuring days */}
+          <input type="number" {...methods.register("repeatDays")} className="Input w-full pr-20" placeholder="days" defaultValue={task.repeatDays?.toString()} />
+          <div className="absolute inset-y-0 right-0 flex items-center">
+            <label className="sr-only">RecurringType</label>
+            {/* Type dropdown */}
+            <select id="recurringType" defaultValue={task.recurringType} {...methods.register("recurringType")} className="h-full rounded-md border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm">
+              <option>Once</option>
+              <option>From Due Date</option>
+              <option>After Completion</option>
+            </select>
+          </div>
+        </div>
+      </fieldset>
+      <div>
+        {methods.formState.errors.repeatDays?.message && <p className="text-red-700">{methods.formState.errors.repeatDays?.message}</p>}
+      </div>
+
+
       <div
         style={{ display: "flex", marginTop: 25, justifyContent: "flex-end" }}
       >
@@ -161,6 +183,7 @@ export default function TaskEdit(props: Props) {
           className="Button green"
           type="submit"
           disabled={editMutation.isLoading}
+          autoFocus
         >
           Save
         </button>

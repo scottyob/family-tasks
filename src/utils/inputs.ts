@@ -11,4 +11,6 @@ export const TaskEditInput = z.object({
   completionValue: z.coerce.number(),
   offsetValue: z.coerce.number(),
   offsetType: z.enum(["Same", "Increase", "Decrease"]),
+  recurringType: z.enum(["Once", "From Due Date", "After Completion"]),
+  repeatDays: z.coerce.number(),
 });
