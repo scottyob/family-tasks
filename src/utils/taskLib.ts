@@ -23,7 +23,7 @@ export function TaskWorth(task: Task) {
     localDate.setUTCHours(0, 0, 0, 1);
 
     const diffInMs: number = localDate.getTime() - task.dueDate.getTime();
-    const diffInDays: number = Math.ceil(diffInMs / (1000 * 60 * 60 * 24));
+    const diffInDays: number = Math.round(diffInMs / (1000 * 60 * 60 * 24));
 
     console.log("timeDifference: ", {
         diffInMs,
