@@ -77,9 +77,15 @@ export function TaskListItem(props: CheckedListItemProps) {
   let dueJsx = null;
   if (task.dueDate) {
     const due = moment(task.dueDate.toISOString().slice(0, 10)).endOf("day");
-    console.log("Due", due);
-    const timeDelta = due.fromNow();
     const hours = due.diff(moment(), "hours");
+    const timeDelta = hours < -1 * 24 * 6 ? due.fromNow() : due.calendar({
+      lastDay: '[Yesterday]',
+      sameDay: '[Today]',
+      nextDay: '[Tomorrow]',
+      nextWeek: 'dddd',
+      lastWeek: '[Last] dddd',
+      sameElse: 'L',
+    });//due.fromNow();
     let dateColor = "text-gray-400";
     if (hours < 0) {
       dateColor = "text-red-600";

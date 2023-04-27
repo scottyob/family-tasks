@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-html-link-for-pages */
 /* eslint-disable @next/next/no-sync-scripts */
 import { type AppType } from "next/app";
 
@@ -26,7 +27,7 @@ function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
   if (status == "unauthenticated") {
     return <div className="flex self-center flex-1 justify-center items-center">
       <div>
-        Please <Link className="text-lime-500 text-lg" href="/api/auth/signin">Login</Link>
+        Please <a className="text-lime-500 text-lg" href="/api/auth/signin">Login</a>
       </div>
     </div>
   }
