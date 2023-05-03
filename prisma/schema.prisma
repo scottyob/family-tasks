@@ -81,7 +81,6 @@ model Task {
   id       String  @id @default(uuid())
   title    String
   notes    String?
-  type     String  @default("Task") // Expected {Habbit, Daily, Task}
   complete Boolean @default(false)
 
   group   Group  @relation(fields: [groupId], references: [id])

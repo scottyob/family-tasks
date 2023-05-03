@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { RecurringType, TaskType } from "~/utils/enums";
+import { RecurringType } from "~/utils/enums";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TaskEditInput } from "~/utils/inputs";
 import { TaskWorth } from "~/utils/taskLib";
@@ -39,14 +39,12 @@ export const tasksRouter = createTRPCRouter({
     .input(
       z.object({
         groupId: z.string().optional(),
-        type: z.nativeEnum(TaskType),
       })
     )
     .query(({ input, ctx }) => {
       return ctx.prisma.task.findMany({
         where: {
           groupId: input.groupId,
-          type: input.type,
         },
         include: {
           assignedTo: true
@@ -62,15 +60,29 @@ export const tasksRouter = createTRPCRouter({
       z.object({
         title: z.string(),
         groupId: z.string(),
-        type: z.nativeEnum(TaskType),
       })
     )
     .mutation(async ({ input, ctx }) => {
+      // Get the users in this group
+      const groupUsers = await ctx.prisma.usersOnGroups.findMany(
+        {
+          where: {
+            groupId: input.groupId
+          }
+        }
+      );
+
+      // If there's only one user in this group, assign them as the owner
+      let owner = null;
+      if(groupUsers.length == 1) {
+        owner = groupUsers[0]?.userId;
+      }
+
       await ctx.prisma.task.create({
         data: {
           title: input.title,
           groupId: input.groupId,
-          type: input.type.toString(),
+          assignedToId: owner,
         },
       });
     }),

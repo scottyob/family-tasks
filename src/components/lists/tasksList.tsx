@@ -2,14 +2,12 @@ import { type Group, type Task } from ".prisma/client";
 import { ModalFormContainer } from "~/components/forms/modalFormContainer";
 import React from "react";
 import { api } from "~/utils/api";
-import { type TaskType } from "~/utils/enums";
 import TaskEdit from "../forms/taskEdit";
 import ListContainer from "./listContainer";
 import { TaskListItem } from "./listItems";
 
 interface Props {
     group?: Group;
-    type: TaskType;
 }
 
 type TodoStatus = "Active" | "Scheduled" | "Complete";
@@ -34,7 +32,6 @@ export default function TasksList(props: Props) {
     // Database interactions
     const tasksQuery = api.tasks.tasksForGroupByType.useQuery({
         groupId: props.group?.id,
-        type: props.type
     });
     const addTaskMutator = api.tasks.addTaskWithTitle.useMutation();
 
@@ -84,7 +81,6 @@ export default function TasksList(props: Props) {
         addTaskMutator.mutate({
             groupId: props.group?.id,
             title: title,
-            type: props.type
         }, {
             onSuccess: () => {
                 done();
@@ -94,17 +90,17 @@ export default function TasksList(props: Props) {
     }
 
     // Render the list of tasks
-    const addPlaceholder = props.group == null ? undefined : "Add a " + props.type.toString();
+    const addPlaceholder = props.group == null ? undefined : "Add a Task";
     return <div className={containerStyle} >
         <ModalFormContainer
             shown={modifyTaskId !== undefined}
-            title={`Edit ${modifyTaskId?.type || ""}`}
+            title={`Edit Task}`}
             setShown={(shown) => { if (!shown) { setModifyTaskId(undefined) } }}
         >
             {modifyTaskId != null ? <TaskEdit task={modifyTaskId} onRequestClose={() => setModifyTaskId(undefined)} /> : undefined}
         </ModalFormContainer>
         <div className="flex relative">
-            <h2>{props.group?.name} {props.type.toString()}s</h2>
+            <h2>{props.group?.name}</h2>
             <FilterSelector status={filter} setStatus={setFilter} />
         </div>
         <ListContainer

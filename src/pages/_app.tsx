@@ -14,15 +14,12 @@ import React, { Fragment, type ReactNode, useEffect } from "react";
 import { useAppStore } from "~/utils/context";
 import { useRouter } from "next/router";
 import { SessionProvider } from "next-auth/react"
-import { type TaskType } from "~/utils/enums";
 import { useSession } from "next-auth/react"
 import { type Session } from "next-auth";
-import Link from "next/link";
 
 
 function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
   const { status } = useSession()
-  const router = useRouter();
 
   if (status == "unauthenticated") {
     return <div className="flex self-center flex-1 justify-center items-center">
@@ -34,25 +31,19 @@ function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
   if (status == "loading") {
     return <p>Loading...</p>
   }
-  // TODO:  Move this to somewhere more appropriate
-  if (router.asPath == "/") {
-    void router.push("/Task");
-  }
 
   return <Fragment>{props.children}</Fragment>;
 }
 
 const MyApp: AppType<{ session: Session | null}> = ({ Component, pageProps: { session, ...pageProps} }) => {
   // Global context
-  const setFilters = useAppStore((state) => state.setFilters);
+  const setFilters = useAppStore((state) => state.setGroup);
 
   const groupsQuery = api.users.groups.useQuery();
 
   // Pull all the information from the router
   const router = useRouter();
   const urlGroup = router.query['group']?.[0];
-  const urlFilter = (router.query['filter'] as string | undefined ?? "Task") as TaskType;
-
 
 
   useEffect(() => {
@@ -60,9 +51,9 @@ const MyApp: AppType<{ session: Session | null}> = ({ Component, pageProps: { se
     if (groups == null) { return; }
 
     const group = urlGroup == null ? undefined : groups.find((g) => g.id == urlGroup);
-    setFilters(urlFilter, group);
+    setFilters(group);
 
-  }, [router.query, groupsQuery.data, urlGroup, setFilters, urlFilter])
+  }, [router.query, groupsQuery.data, urlGroup, setFilters])
 
   return (
     <SessionProvider session={session}>

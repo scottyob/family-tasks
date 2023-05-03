@@ -110,7 +110,7 @@ export default function StatusBar() {
           grp = `/${group.id}`;
         }
         
-        void router.push(`/${state.filterType}${grp}`);
+        void router.push(grp);
         
       }}
       modules={[Mousewheel, Pagination]}

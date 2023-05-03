@@ -12,7 +12,7 @@ export default function NavBar() {
     const selected = 'text-blue-600';
     const unselected = 'text-gray-600';
 
-    const habbitsClass = asPath.startsWith("/Habit") ? selected : unselected;
+    const todayClass = asPath == "/" ? selected : unselected;
     const dailiesClass = asPath.startsWith("/Daily") ? selected : unselected;
     const taskClass = asPath.startsWith("/Task") ? selected : unselected;
     const menuClass = asPath.startsWith("/menu") ? selected : unselected;
@@ -31,7 +31,7 @@ export default function NavBar() {
 
     
     return <div className="flex flex-row grow place-self-center place-items-center justify-around">
-        <Link href={"/Habit" + suffix}><FaBalanceScaleLeft className={habbitsClass} size={30} /></Link>
+        <Link href={"/"}><FaBalanceScaleLeft className={todayClass} size={30} /></Link>
         <Link href={"/Daily" + suffix}><HiOutlineCalendarDays className={dailiesClass} size={30} /></Link>
         <Link href={"/Task" + suffix}><BiTask className={taskClass} size={30} /></Link>
         <Link href={"/menu"}><FaCogs className={menuClass} size={30} /></Link>
