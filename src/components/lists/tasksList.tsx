@@ -8,6 +8,7 @@ import { TaskListItem } from "./listItems";
 
 interface Props {
     group?: Group;
+    filterToday?: boolean;
 }
 
 type TodoStatus = "Active" | "Scheduled" | "Complete";

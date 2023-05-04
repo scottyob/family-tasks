@@ -39,12 +39,25 @@ export const tasksRouter = createTRPCRouter({
     .input(
       z.object({
         groupId: z.string().optional(),
+        filterToday: z.boolean().default(false),
       })
     )
     .query(({ input, ctx }) => {
+
+      let dueDate: Date | undefined = new Date();
+      const offset = -480; // PST (UTC-8) without DST
+      dueDate = new Date(dueDate.getTime() + offset)
+      // dueDate = undefined;
+      // get the UTC offset in milliseconds for the America/Los_Angeles time zone
+      // const offset = -480; // PST (UTC-8) without DST
+      
+
       return ctx.prisma.task.findMany({
         where: {
           groupId: input.groupId,
+          dueDate: dueDate ? {
+            lte: dueDate,
+          } : undefined,
         },
         include: {
           assignedTo: true
