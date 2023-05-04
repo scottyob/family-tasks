@@ -3,6 +3,7 @@ import { RecurringType } from "~/utils/enums";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TaskEditInput } from "~/utils/inputs";
 import { TaskWorth } from "~/utils/taskLib";
+import { DateTime } from "luxon";
 
 /**
  * Router for anything to do with users and groups
@@ -28,8 +29,8 @@ export const tasksRouter = createTRPCRouter({
           offsetType: input.offsetType,
           recurringType: input.repeatDays > 0 ? input.recurringType : "Once",
           repeatDays: input.repeatDays || null,
-        }
-      })
+        },
+      });
     }),
 
   /**
@@ -39,29 +40,27 @@ export const tasksRouter = createTRPCRouter({
     .input(
       z.object({
         groupId: z.string().optional(),
-        filterToday: z.boolean().default(false),
+        before: z.date().optional(),
       })
     )
     .query(({ input, ctx }) => {
-
-      let dueDate: Date | undefined = new Date();
-      const offset = -480; // PST (UTC-8) without DST
-      dueDate = new Date(dueDate.getTime() + offset)
-      // dueDate = undefined;
-      // get the UTC offset in milliseconds for the America/Los_Angeles time zone
-      // const offset = -480; // PST (UTC-8) without DST
-      
+      // For user if no group specified.
+      let userId = undefined;
+      if (input.groupId == undefined) {
+        userId = ctx.user.id;
+      }
 
       return ctx.prisma.task.findMany({
         where: {
           groupId: input.groupId,
-          dueDate: dueDate ? {
-            lte: dueDate,
-          } : undefined,
+          dueDate: {
+            lte: input.before,
+          },
+          assignedToId: userId,
         },
         include: {
-          assignedTo: true
-        }
+          assignedTo: true,
+        },
       });
     }),
 
@@ -77,17 +76,15 @@ export const tasksRouter = createTRPCRouter({
     )
     .mutation(async ({ input, ctx }) => {
       // Get the users in this group
-      const groupUsers = await ctx.prisma.usersOnGroups.findMany(
-        {
-          where: {
-            groupId: input.groupId
-          }
-        }
-      );
+      const groupUsers = await ctx.prisma.usersOnGroups.findMany({
+        where: {
+          groupId: input.groupId,
+        },
+      });
 
       // If there's only one user in this group, assign them as the owner
       let owner = null;
-      if(groupUsers.length == 1) {
+      if (groupUsers.length == 1) {
         owner = groupUsers[0]?.userId;
       }
 
@@ -124,18 +121,18 @@ export const tasksRouter = createTRPCRouter({
       // Load up the task
       const task = await ctx.prisma.task.findUniqueOrThrow({
         where: {
-          id: input.taskId
-        }
+          id: input.taskId,
+        },
       });
       if (!input.completed) {
         // User is flagging a task as not having been completed
         return await ctx.prisma.task.update({
           where: {
-            id: task.id
+            id: task.id,
           },
           data: {
-            complete: false
-          }
+            complete: false,
+          },
         });
       }
 
@@ -148,16 +145,11 @@ export const tasksRouter = createTRPCRouter({
           complete = true;
           break;
         case RecurringType.AfterCompletion:
-          // create a new Date object for the current date and time
-          const currentDate = new Date();
-
-          // get the UTC offset in milliseconds for the America/Los_Angeles time zone
-          const offset = -480; // PST (UTC-8) without DST
-
-          // create a new Date object for the America/Los_Angeles time zone
-          const localDate = new Date(currentDate.getTime() + offset * 60 * 1000);
-          localDate.setDate(localDate.getDate() + (task.repeatDays?.toNumber() ?? 0));
-          dueDate = localDate;
+          dueDate = new Date(
+            DateTime.now()
+              .plus({ days: task.repeatDays?.toNumber() })
+              .toMillis()
+          );
           break;
         case RecurringType.FromDueDate:
           dueDate = task.dueDate;
@@ -165,7 +157,9 @@ export const tasksRouter = createTRPCRouter({
             complete = true;
             break;
           }
-          dueDate.setDate(dueDate.getDate() + (task?.repeatDays?.toNumber() ?? 0));
+          dueDate.setDate(
+            dueDate.getDate() + (task?.repeatDays?.toNumber() ?? 0)
+          );
       }
 
       // Update the user's gold
@@ -173,12 +167,12 @@ export const tasksRouter = createTRPCRouter({
       if (worth.total > 0) {
         await ctx.prisma.user.update({
           where: {
-            id: ctx.user.id
+            id: ctx.user.id,
           },
           data: {
-            gold: { increment: worth.total }
-          }
-        })
+            gold: { increment: worth.total },
+          },
+        });
       }
 
       // Update the task

@@ -4,6 +4,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { zodResolver } from "@hookform/resolvers/zod";
 import { type Decimal } from "@prisma/client/runtime";
+import { DateTime } from "luxon";
 import { useForm, type UseFormProps } from "react-hook-form";
 import { type z } from "zod";
 
@@ -26,8 +27,8 @@ export function BasicInput(props: {
   fieldName: string;
   value: string | number | boolean | Date | null | Decimal;
   inputType?: string;
-  options?: Map<string, string>,
-  displayName?: string,
+  options?: Map<string, string>;
+  displayName?: string;
 }) {
   const { methods, fieldName, schema } = props;
   let { inputType, value } = props;
@@ -49,10 +50,12 @@ export function BasicInput(props: {
     ) {
       inputType = "date";
       if (value instanceof Date) {
-        value = value.toISOString().slice(0, 10);
+        value = DateTime.fromMillis(value.getTime()).toISODate();
       }
       setValueFunction = (v: any) => {
-        return v == "" ? null : v;
+        return v == ""
+          ? null
+          : DateTime.fromFormat(v as string, "yyyy-MM-dd").endOf("day");
       };
     }
   }
@@ -77,17 +80,17 @@ export function BasicInput(props: {
         break;
       }
 
-      const optionElements = Array.from(props.options.entries()).map(([key, value]) => {
-        return (
-          <option key={key} value={key}>
-            {value}
-          </option>
-        );
-      });
+      const optionElements = Array.from(props.options.entries()).map(
+        ([key, value]) => {
+          return (
+            <option key={key} value={key}>
+              {value}
+            </option>
+          );
+        }
+      );
 
-      input = <select {...inputArgs}>
-        {optionElements}
-      </select>
+      input = <select {...inputArgs}>{optionElements}</select>;
       break;
     default:
       input = <input {...inputArgs} />;
@@ -96,7 +99,9 @@ export function BasicInput(props: {
   return (
     <>
       <fieldset className="Fieldset">
-        <label className="Label">{props.displayName ? props.displayName : fieldName}</label>
+        <label className="Label">
+          {props.displayName ? props.displayName : fieldName}
+        </label>
         {input}
       </fieldset>
       {errorMessage && <p className="text-red-700">{errorMessage as string}</p>}

@@ -5,6 +5,7 @@ import { api } from "~/utils/api";
 import TaskEdit from "../forms/taskEdit";
 import ListContainer from "./listContainer";
 import { TaskListItem } from "./listItems";
+import { DateTime } from "luxon";
 
 interface Props {
     group?: Group;
@@ -29,10 +30,17 @@ function FilterSelector(props: {
 export default function TasksList(props: Props) {
     const [filter, setFilter] = React.useState<TodoStatus>("Active");
     const [modifyTaskId, setModifyTaskId] = React.useState<Task | undefined>();
+    let before = undefined;
+
+    // Filter today's
+    if(props.filterToday) {
+        before = DateTime.now().endOf("day").toJSDate();
+    }
 
     // Database interactions
     const tasksQuery = api.tasks.tasksForGroupByType.useQuery({
         groupId: props.group?.id,
+        before
     });
     const addTaskMutator = api.tasks.addTaskWithTitle.useMutation();
 
@@ -52,6 +60,8 @@ export default function TasksList(props: Props) {
             case "Complete":
                 tasks = tasks.filter(task => task.complete);
                 break;
+            case "Scheduled":
+                tasks = tasks.filter(task => !task.complete && task.dueDate != null)
             default:
                 // handle invalid filter values here, if desired
                 break;

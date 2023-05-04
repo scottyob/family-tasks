@@ -36,7 +36,6 @@ export default function TaskEdit(props: Props) {
   const allGroups = api.users.groups.useQuery();
   const allGroupMembers = api.users.groupMembers.useQuery({ id: task.groupId });
 
-
   const editMutation = api.tasks.edit.useMutation();
   const methods = useZodForm({
     schema: TaskEditInput,

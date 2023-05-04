@@ -1,5 +1,6 @@
 import { type Task } from "@prisma/client";
 import { TaskOffsetType } from "./enums";
+import { DateTime } from "luxon";
 
 export function TaskWorth(task: Task) {
     const noPenalty = {
@@ -12,23 +13,8 @@ export function TaskWorth(task: Task) {
         return noPenalty
     }
 
-    // create a new Date object for the current date and time
-    const currentDate = new Date();
-    
-    // get the UTC offset in milliseconds for the America/Los_Angeles time zone
-    const offset = -480; // PST (UTC-8) without DST
-    
-    // create a new Date object for the America/Los_Angeles time zone
-    const localDate = new Date(currentDate.getTime() + offset * 60 * 1000);
-    localDate.setUTCHours(0, 0, 0, 1);
-
-    const diffInMs: number = localDate.getTime() - task.dueDate.getTime();
-    const diffInDays: number = Math.round(diffInMs / (1000 * 60 * 60 * 24));
-
-    console.log("timeDifference: ", {
-        diffInMs,
-        diffInDays
-    })
+    const dueDate = DateTime.fromMillis(task.dueDate.getTime());
+    const diffInDays = Math.ceil(dueDate.until(DateTime.now()).length("days"));
 
     if(diffInDays < 0) {
         return noPenalty;
