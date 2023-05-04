@@ -171,6 +171,13 @@ export default function TaskEdit(props: Props) {
         {methods.formState.errors.repeatDays?.message && <p className="text-red-700">{methods.formState.errors.repeatDays?.message}</p>}
       </div>
 
+      <BasicInput
+        schema={TaskEditInput}
+        methods={methods}
+        fieldName="availableIn"
+        displayName="Available In (days)"
+        value={task.availableInDays}
+      />
 
       <div
         style={{ display: "flex", marginTop: 25, justifyContent: "flex-end" }}

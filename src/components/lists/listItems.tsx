@@ -59,10 +59,23 @@ export function TaskListItem(props: CheckedListItemProps) {
   // Task Toggle
   const context = api.useContext();
   const toggleFlagged = () => {
+    const isComplete = !props.task.complete;
+    let availableOn = undefined;
+
+    // Calculate the date it's available on
+    if (isComplete && props.task.availableInDays) {
+      // Calculate the date this should be next available in.
+      availableOn = DateTime.now()
+        .plus({ days: Number(props.task.availableInDays) })
+        .startOf("day")
+        .toJSDate();
+    }
+
     updateFlagged.mutate(
       {
         taskId: props.task.id,
-        completed: !props.task.complete,
+        completed: isComplete,
+        availableOn: availableOn,
       },
       {
         onSuccess: () => {
@@ -84,7 +97,7 @@ export function TaskListItem(props: CheckedListItemProps) {
       : Interval.fromDateTimes(now, dueDate);
     let hours = dueIn.length("hours");
     hours = dueInPast ? -1 * hours : hours;
-    
+
     // Human readable date string.  If two weeks out from today, just show the date
     const dueDateStr =
       Math.abs(hours) > 24 * 14

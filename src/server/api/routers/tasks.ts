@@ -29,6 +29,7 @@ export const tasksRouter = createTRPCRouter({
           offsetType: input.offsetType,
           recurringType: input.repeatDays > 0 ? input.recurringType : "Once",
           repeatDays: input.repeatDays || null,
+          availableInDays: input.availableIn,
         },
       });
     }),
@@ -43,14 +44,14 @@ export const tasksRouter = createTRPCRouter({
         before: z.date().optional(),
       })
     )
-    .query(({ input, ctx }) => {
+    .query(async ({ input, ctx }) => {
       // For user if no group specified.
       let userId = undefined;
       if (input.groupId == undefined) {
         userId = ctx.user.id;
       }
 
-      return ctx.prisma.task.findMany({
+      const tasks = await ctx.prisma.task.findMany({
         where: {
           groupId: input.groupId,
           dueDate: {
@@ -62,6 +63,29 @@ export const tasksRouter = createTRPCRouter({
           assignedTo: true,
         },
       });
+
+      // Check if any tasks are due to become available again
+      const madeAvailable = tasks.filter(t => t.availableOn != null && t.availableOn.getTime() < Date.now());
+      madeAvailable.forEach(t => {
+        t.availableOn = null;
+        t.complete = false;
+      })
+
+      // Update the database
+      await ctx.prisma.task.updateMany({
+        where: {
+          id: {
+            in: madeAvailable.map(t => t.id)
+          }
+        },
+        data: {
+          complete: false,
+          availableOn: null,
+        }
+      });
+
+      return tasks;
+
     }),
 
   /**
@@ -114,6 +138,7 @@ export const tasksRouter = createTRPCRouter({
       z.object({
         taskId: z.string(),
         completed: z.boolean(),
+        availableOn: z.date().optional(),
       })
     )
     .mutation(async ({ input, ctx }) => {
@@ -175,6 +200,11 @@ export const tasksRouter = createTRPCRouter({
         });
       }
 
+      // Account for uncomplete tasks that have availableOn
+      if(input.availableOn && input.completed && !complete) {
+        complete = true;
+      }
+
       // Update the task
       return await ctx.prisma.task.update({
         where: {
@@ -183,6 +213,7 @@ export const tasksRouter = createTRPCRouter({
         data: {
           complete: complete,
           dueDate: dueDate,
+          availableOn: input.availableOn || null,
         },
       });
     }),
