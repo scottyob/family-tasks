@@ -10,6 +10,7 @@ import { DateTime } from "luxon";
 interface Props {
     group?: Group;
     filterToday?: boolean;
+    allAvailable?: boolean
 }
 
 type TodoStatus = "Active" | "Scheduled" | "Complete";
@@ -31,6 +32,7 @@ export default function TasksList(props: Props) {
     const [filter, setFilter] = React.useState<TodoStatus>("Active");
     const [modifyTaskId, setModifyTaskId] = React.useState<Task | undefined>();
     let before = undefined;
+    const user = api.users.currentUser.useQuery().data;
 
     // Filter today's
     if(props.filterToday) {
@@ -40,7 +42,8 @@ export default function TasksList(props: Props) {
     // Database interactions
     const tasksQuery = api.tasks.tasksForGroupByType.useQuery({
         groupId: props.group?.id,
-        before
+        before,
+        allAvailable: props.allAvailable,
     });
     const addTaskMutator = api.tasks.addTaskWithTitle.useMutation();
 
@@ -68,14 +71,22 @@ export default function TasksList(props: Props) {
         }
         // Sort em
         tasks = tasks.sort((a, b) => {
-            if (!a.dueDate && !b.dueDate) {
-                return 0;
-            } else if (!a.dueDate) {
-                return 1;
-            } else if (!b.dueDate) {
-                return -1;
+            // First, compare by userID
+            if (a.assignedToId === user?.id && b.assignedToId !== user?.id) {
+                return -1; // a comes first
+            } else if (a.assignedToId !== user?.id && b.assignedToId === user?.id) {
+                return 1; // b comes first
             } else {
-                return a.dueDate.getTime() - b.dueDate.getTime();
+                // Second, compare by due date (if available)
+                if (!a.dueDate && !b.dueDate) {
+                    return 0;
+                } else if (!a.dueDate) {
+                    return 1;
+                } else if (!b.dueDate) {
+                    return -1;
+                } else {
+                    return a.dueDate.getTime() - b.dueDate.getTime();
+                }
             }
         });
 

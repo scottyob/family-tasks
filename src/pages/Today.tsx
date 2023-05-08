@@ -8,7 +8,7 @@ export default function Today() {
               <StatusBar />
             </div>
             <div className="overflow-auto grow">
-              <TaskList filterToday={true} />
+              <TaskList filterToday={true} allAvailable={true} />
             </div>
         </>
       );

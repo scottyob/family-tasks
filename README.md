@@ -36,7 +36,6 @@ The first time launching, you'll need to setup the database and have that genera
 $ sudo docker exec  -it family_tasks /bin/sh
 /app $ ln -s /app/db ./node_modules/.prisma/client/db
 /app $ npx prisma db push --schema ./node_modules/.prisma/client/schema.prisma --skip-generate
-/app $ mv ./node_modules/.prisma/client/db/db.sqlite db/db.sqlite 
 ```
 
 

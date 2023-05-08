@@ -4,6 +4,58 @@ import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TaskEditInput } from "~/utils/inputs";
 import { TaskWorth } from "~/utils/taskLib";
 import { DateTime } from "luxon";
+import { type PrismaClient } from "@prisma/client";
+
+// Finds all tasks for a given user, or all tasks in a group
+async function tasksForUser(
+  ctx: PrismaClient,
+  userID?: string,
+  groupID?: string,
+  before?: Date
+) {
+  return await ctx.task.findMany({
+    where: {
+      groupId: groupID,
+      dueDate: {
+        lte: before,
+      },
+      assignedToId: userID,
+    },
+    include: {
+      assignedTo: true,
+    },
+  });
+}
+
+// Finds all tasks due in all the given user(s) groups, as long as they don't belong to someone else!
+async function tasksAvailable(
+  ctx: PrismaClient,
+  userID?: string,
+  before?: Date
+) {
+  const tasks = await ctx.task.findMany({
+    where: {
+      dueDate: {
+        lte: before,
+      },
+      group: {
+        users: {
+          some: {
+            userId: userID,
+          },
+        },
+      },
+    },
+    include: {
+      assignedTo: true,
+    }
+  });
+
+  // Filter out any that are assigned to a user other than self.
+  return tasks.filter(
+    (t) => t.assignedToId == null || t.assignedToId == userID
+  );
+}
 
 /**
  * Router for anything to do with users and groups
@@ -42,6 +94,7 @@ export const tasksRouter = createTRPCRouter({
       z.object({
         groupId: z.string().optional(),
         before: z.date().optional(),
+        allAvailable: z.boolean().default(false),
       })
     )
     .query(async ({ input, ctx }) => {
@@ -51,41 +104,33 @@ export const tasksRouter = createTRPCRouter({
         userId = ctx.user.id;
       }
 
-      const tasks = await ctx.prisma.task.findMany({
-        where: {
-          groupId: input.groupId,
-          dueDate: {
-            lte: input.before,
-          },
-          assignedToId: userId,
-        },
-        include: {
-          assignedTo: true,
-        },
-      });
+      const tasks = input.allAvailable
+        ? await tasksAvailable(ctx.prisma, userId, input.before)
+        : await tasksForUser(ctx.prisma, userId, input.groupId, input.before);
 
       // Check if any tasks are due to become available again
-      const madeAvailable = tasks.filter(t => t.availableOn != null && t.availableOn.getTime() < Date.now());
-      madeAvailable.forEach(t => {
+      const madeAvailable = tasks.filter(
+        (t) => t.availableOn != null && t.availableOn.getTime() < Date.now()
+      );
+      madeAvailable.forEach((t) => {
         t.availableOn = null;
         t.complete = false;
-      })
+      });
 
       // Update the database
       await ctx.prisma.task.updateMany({
         where: {
           id: {
-            in: madeAvailable.map(t => t.id)
-          }
+            in: madeAvailable.map((t) => t.id),
+          },
         },
         data: {
           complete: false,
           availableOn: null,
-        }
+        },
       });
 
       return tasks;
-
     }),
 
   /**
@@ -201,7 +246,7 @@ export const tasksRouter = createTRPCRouter({
       }
 
       // Account for uncomplete tasks that have availableOn
-      if(input.availableOn && input.completed && !complete) {
+      if (input.availableOn && input.completed && !complete) {
         complete = true;
       }
 
