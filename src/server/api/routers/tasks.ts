@@ -81,7 +81,7 @@ export const tasksRouter = createTRPCRouter({
           offsetType: input.offsetType,
           recurringType: input.repeatDays > 0 ? input.recurringType : "Once",
           repeatDays: input.repeatDays || null,
-          availableInDays: input.availableIn,
+          availableInDays: input.availableIn || null,
         },
       });
     }),
