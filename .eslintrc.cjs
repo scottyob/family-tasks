@@ -4,6 +4,7 @@ const config = {
     {
       extends: [
         "plugin:@typescript-eslint/recommended-requiring-type-checking",
+        "plugin:react-hooks/recommended",
       ],
       files: ["*.ts", "*.tsx"],
       parserOptions: {

@@ -102,3 +102,11 @@ model Task {
   availableOn     DateTime?
   availableInDays Decimal?
 }
+
+// Rewards are saved templates that a playser may purchase for coins
+model Reward {
+  id      String @id @default(uuid())
+  title   String
+
+  purchaseValue  Decimal
+}

@@ -1,5 +1,5 @@
 import { FaCogs } from 'react-icons/fa';
-import {HiOutlineClock} from 'react-icons/hi2';
+import {HiOutlineClock, HiGift} from 'react-icons/hi2';
 import {BiTask} from 'react-icons/bi'
 import Link from 'next/link';
 import { useRouter } from 'next/router';
@@ -15,10 +15,14 @@ export default function NavBar() {
     const unselected = 'text-gray-600';
 
     const todayClass = asPath == "/Today" ? selected : unselected;
+    const purchaseClass = asPath == "/Purchase" ? selected : unselected;
     const menuClass = asPath.startsWith("/menu") ? selected : unselected;
 
     // If we're not in menu or today, we must be on task
-    const taskClass = todayClass == selected || menuClass == selected ? unselected : selected;
+    let taskClass = selected;
+    if([todayClass, purchaseClass, menuClass].find(x => x == selected)) {
+        taskClass = unselected;
+    }
 
     // Figure out the group suffix
     const router = useRouter();
@@ -38,6 +42,7 @@ export default function NavBar() {
             state.setGroup(undefined);
         }} href={"/Today"}><HiOutlineClock className={todayClass} size={30} /></Link>
         <Link href={"/" + suffix}><BiTask className={taskClass} size={30} /></Link>
+        <Link href={"/Purchase"}><HiGift className={purchaseClass} size={30} /></Link>
         <Link href={"/menu"}><FaCogs className={menuClass} size={30} /></Link>
     </div>;
 }

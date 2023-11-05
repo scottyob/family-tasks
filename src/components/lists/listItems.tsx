@@ -1,5 +1,5 @@
 import { type Task, type User } from ".prisma/client";
-import React from "react";
+import React, { type ReactElement } from "react";
 import { BiCheck } from "react-icons/bi";
 import { HiOutlineCalendar } from "react-icons/hi2";
 import { api } from "~/utils/api";
@@ -11,22 +11,72 @@ import { DateTime, Interval } from "luxon";
 interface Props {
   text: string;
   selected?: () => void;
+  color?: "red" | "blue" | "green" | "gray";
+  value?: number;
+  leftInteractive?: ReactElement;
+  leftInteractiveClicked?: () => void;
+  loading?: boolean;
 }
 
 export function StandardListItem(props: Props) {
+  // sets the list item text color
+  let bgColor = "white";
+  let textColor = "black";
+
+  switch (props.color) {
+    case "red":
+      bgColor = "bg-red-400";
+      break;
+    case "green":
+      bgColor = "bg-green-400";
+      break;
+    case "blue":
+      bgColor = "bg-blue-400";
+      break;
+    case "gray":
+      bgColor = "bg-gray-400";
+      textColor = "text-gray-400";
+      break;
+  }
+
+  // Creates a coin/worth associated with the list item
+  let worthElement = <></>;
+  if (props.value) {
+    worthElement = <span>- 🪙{props.value.toString()}</span>;
+  }
+
+  const outerClassName = "m-0.5 flex min-h-[60px]" + (props.loading ? " animate-pulse" : "");
   return (
-    <div
-      className="m-0.5 flex min-h-[40px]"
-      onClick={() => {
-        if (props.selected != null) {
-          props.selected();
+    <div className={outerClassName}>
+      {/* Left container */}
+      <div
+        className={
+          "flex min-w-[40px] place-items-center justify-center rounded-l-lg transition-all duration-500 " +
+          bgColor
         }
-      }}
-    >
+        onClick={props.leftInteractiveClicked}
+      >
+        {/* Left Button */}
+        <div className="in-w-[20px] min-h-[20px] bg-gray-200/40">
+          {props.leftInteractive}
+        </div>
+      </div>
+
       {/* Text container */}
-      <div className="flex grow rounded-lg bg-white p-2">
+      <div
+        className="flex grow rounded-r-lg bg-gray-50 p-2"
+        onClick={() => {
+          if (props.selected != null) {
+            props.selected();
+          }
+        }}
+      >
         <div className="flex grow place-self-center">
-          <div className="">{props.text}</div>
+          <div className="frow flex-row">
+            <div className={textColor}>
+              {props.text} {worthElement}
+            </div>
+          </div>
         </div>
       </div>
     </div>

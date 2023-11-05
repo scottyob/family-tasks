@@ -15,6 +15,7 @@ import 'swiper/css/navigation';
 import 'swiper/css/pagination';
 
 import { Avatar } from "./avatar";
+import UserStats from "./UserStats";
 
 const titleClass = vt323.className + " text-center text-lg";
 type RouterOutput = inferRouterOutputs<AppRouter>;
@@ -40,17 +41,7 @@ function StatusSlide() {
 
   let avatarSettings = <></>;
   if (user != null) {
-    avatarSettings = (
-      <div className="flex">
-        <Avatar user={user} hideMoney={true} />
-        <div className="text-left">
-          <div>
-            <strong>💰 </strong>
-            {user.gold}
-          </div>
-        </div>
-      </div>
-    );
+    avatarSettings = <UserStats user={user} />;
   }
 
   return (
@@ -126,7 +117,7 @@ export default function StatusBar() {
         modules={[Mousewheel, Navigation, Pagination]}
         className="mySwiper"
       >
-        <SwiperSlide key="status" className="">
+        <SwiperSlide key="status">
           <StatusSlide />
         </SwiperSlide>
         {groupSlides}

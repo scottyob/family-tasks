@@ -15,3 +15,9 @@ export const TaskEditInput = z.object({
   repeatDays: z.coerce.number(),
   availableIn: z.coerce.number().nullable()
 });
+
+export const RewardEditInput = z.object({
+  id: z.string(),
+  title: z.string(),
+  purchaseValue: z.coerce.number(),
+})
