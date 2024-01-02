@@ -250,6 +250,18 @@ export const tasksRouter = createTRPCRouter({
         complete = true;
       }
 
+      // Add a record for the task.
+      // Calculate the increase of the streak count.
+      await ctx.prisma.taskCompleteRecord.create({
+        data: {
+          completedOn: new Date(),
+          taskId: input.taskId,
+          userId: ctx.user.id,
+          worth: worth.total,
+          streakCount: task.streakCount
+        }
+      });
+
       // Update the task
       return await ctx.prisma.task.update({
         where: {

@@ -44,3 +44,11 @@ $ sudo docker exec  -it family_tasks /bin/sh
 $ docker build  -t scottyob/family-tasks --build-arg NEXT_PUBLIC_CLIENTVAR=clientvar .
 $ docker push scottyob/family-tasks:latest
 ```
+
+# Developer Notes
+## Updating the database
+1.  Update the schema under prisma/schema.prisma
+```
+npx prisma generate
+npx prisma db push
+``` 
