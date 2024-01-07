@@ -48,7 +48,7 @@ async function tasksAvailable(
     },
     include: {
       assignedTo: true,
-    }
+    },
   });
 
   // Filter out any that are assigned to a user other than self.
@@ -206,6 +206,33 @@ export const tasksRouter = createTRPCRouter({
         });
       }
 
+      // Calculate the "streak" count for this task
+      let streakCount = (task.streakCount?.toNumber() ?? 0) + 1;
+      console.log(
+        "Calculated stream count for task: ",
+        task.title,
+        streakCount
+      );
+      if (task.dueDate) {
+        const originalDueDate = DateTime.fromMillis(
+          task.dueDate?.getTime()
+        ).endOf("day");
+        const daysUntilDue = Math.round(
+          originalDueDate.until(DateTime.now().endOf("day")).length("days")
+        );
+
+        console.log("Days until task is due: ", daysUntilDue);
+        if (daysUntilDue > 0) {
+          // Reset the streak count
+          console.log(
+            "Reset the stream count as the task is over-due",
+            daysUntilDue,
+            task.title
+          );
+          streakCount = 1;
+        }
+      }
+
       const recurringType = task.recurringType as RecurringType;
       let complete = false;
       let dueDate = undefined;
@@ -258,8 +285,9 @@ export const tasksRouter = createTRPCRouter({
           taskId: input.taskId,
           userId: ctx.user.id,
           worth: worth.total,
-          streakCount: task.streakCount
-        }
+          streakCount: streakCount,
+          title: task.title
+        },
       });
 
       // Update the task
@@ -271,6 +299,7 @@ export const tasksRouter = createTRPCRouter({
           complete: complete,
           dueDate: dueDate,
           availableOn: input.availableOn || null,
+          streakCount,
         },
       });
     }),
