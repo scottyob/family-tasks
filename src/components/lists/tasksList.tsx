@@ -6,6 +6,7 @@ import TaskEdit from "../forms/taskEdit";
 import ListContainer from "./listContainer";
 import { TaskListItem } from "./listItems";
 import { DateTime } from "luxon";
+import TaskDetails from "../TaskDetails";
 
 interface Props {
     group?: Group;
@@ -114,13 +115,10 @@ export default function TasksList(props: Props) {
     // Render the list of tasks
     const addPlaceholder = props.group == null ? undefined : "Add a Task";
     return <div className={containerStyle} >
-        <ModalFormContainer
-            shown={modifyTaskId !== undefined}
-            title={`Edit Task}`}
-            setShown={(shown) => { if (!shown) { setModifyTaskId(undefined) } }}
-        >
-            {modifyTaskId != null ? <TaskEdit task={modifyTaskId} onRequestClose={() => setModifyTaskId(undefined)} /> : undefined}
-        </ModalFormContainer>
+        {modifyTaskId && <TaskDetails
+          task={modifyTaskId}
+          onClose={() => setModifyTaskId(undefined)}
+        />}
         <div className="flex relative">
             <h2>{props.group?.name}</h2>
             <FilterSelector status={filter} setStatus={setFilter} />

@@ -9,6 +9,7 @@
 
 html, body {
   overscroll-behavior-x: none;
+  user-select: none;
 }
 
 .DialogOverlay {

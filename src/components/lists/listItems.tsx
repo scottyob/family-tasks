@@ -45,7 +45,8 @@ export function StandardListItem(props: Props) {
     worthElement = <span>- 🪙{props.value.toString()}</span>;
   }
 
-  const outerClassName = "m-0.5 flex min-h-[60px]" + (props.loading ? " animate-pulse" : "");
+  const outerClassName =
+    "m-0.5 flex min-h-[60px]" + (props.loading ? " animate-pulse" : "");
   return (
     <div className={outerClassName}>
       {/* Left container */}
@@ -169,9 +170,14 @@ export function TaskListItem(props: CheckedListItemProps) {
       color = "bg-amber-400";
     }
     dueJsx = (
-      <div className={"flex space-x-1 text-xs font-bold " + dateColor}>
-        <HiOutlineCalendar className="inline" size={16} />
-        <div>Due {dueDateStr}</div>
+      <div className={"flex space-x-1 text-xs"}>
+        <div className={dateColor + " flex space-x-1 font-bold"}>
+          <HiOutlineCalendar className="inline" size={16} />
+          <div>Due {dueDateStr}</div>
+        </div>
+        {task?.streakCount && (
+          <div>Streak: {task?.streakCount?.toString()}</div>
+        )}
       </div>
     );
   }
