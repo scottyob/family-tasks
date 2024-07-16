@@ -12,7 +12,7 @@ import { DateTime, Interval } from "luxon";
 interface Props {
   text: string;
   selected?: () => void;
-  color?: "red" | "blue" | "green" | "gray";
+  color?: "red" | "blue" | "green" | "gray" | "gold";
   value?: number;
   leftInteractive?: ReactElement;
   leftInteractiveClicked?: () => void;
@@ -30,6 +30,9 @@ export function StandardListItem(props: Props) {
       break;
     case "green":
       bgColor = "bg-green-400";
+      break;
+    case "gold":
+      bgColor = "bg-yellow-400";
       break;
     case "blue":
       bgColor = "bg-blue-400";

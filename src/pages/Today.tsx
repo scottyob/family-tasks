@@ -8,7 +8,7 @@ export default function Today() {
               <StatusBar currentProject="Started & Due" />
             </div>
             <div className="overflow-auto grow">
-              <TaskList />
+              <TaskList filterUserFavorites={true} />
             </div>
         </>
       );

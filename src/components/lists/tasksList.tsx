@@ -9,7 +9,8 @@ import { Task } from "~/utils/taskLib";
 import { DateTime, Interval } from "luxon";
 
 interface Props {
-    project?: string
+    project?: string,
+    filterUserFavorites?: boolean
 }
 type TodoStatus = "Pending" | "Waiting" | "Completed";
 
@@ -46,6 +47,11 @@ export default function TasksList(props: Props) {
 
     // Render a list of tasks from the server
     let tasks = [...(tasksQuery.data || [])] as Task[]
+    
+    if(props.filterUserFavorites && user?.favoriteProjects) {
+        const userFavoriteProjects = new Set(JSON.parse(user.favoriteProjects) as string[])
+        tasks = tasks.filter(t => !t.project || userFavoriteProjects.has(t.project))
+    }
 
     // Filter the tasks based on the selected filter
     switch (filter) {
