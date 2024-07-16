@@ -7,6 +7,7 @@ interface ModalProps {
   title?: string;
   setShown: (isShown: boolean) => void;
   children?: ReactNode;
+  descriptionHidden?: boolean;
 }
 
 function ModalFormContainer(props: ModalProps) {
@@ -18,10 +19,11 @@ function ModalFormContainer(props: ModalProps) {
           {props.title ? (
             <Dialog.Title className="DialogTitle">{props.title}</Dialog.Title>
           ) : null}
-          <Dialog.Description className="DialogDescription">
-            {"Make changes.  Click save when you're done."}
-          </Dialog.Description>
-
+          {props.descriptionHidden ? null : (
+            <Dialog.Description className="DialogDescription">
+              {"Make changes.  Click save when you're done."}
+            </Dialog.Description>
+          )}
           {props.children}
           <Dialog.Close asChild>
             <button className="IconButton" aria-label="Close">
@@ -32,7 +34,6 @@ function ModalFormContainer(props: ModalProps) {
       </Dialog.Portal>
     </Dialog.Root>
   );
-
 }
 
 export { ModalFormContainer };
