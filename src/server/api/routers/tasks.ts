@@ -19,7 +19,7 @@ export const tasksRouter = createTRPCRouter({
       })
     )
     .query(({ input, ctx }) => {
-      let filter = "'(status:pending and (+ACTIVE or due))'";
+      let filter = "'(status:pending and (+ACTIVE or due or -PROJECT))'";
       if(input.filter) {
         filter = input.filter;
       }
@@ -68,6 +68,24 @@ export const tasksRouter = createTRPCRouter({
       }
 
       taskwarrior.update([task]);
+    }),
+
+  /**
+   * Add a new Task, simplistic API
+   */
+  add: publicProcedure
+    .input(z.object({
+      project: z.string().optional(),
+      title: z.string(),
+    }))
+    .mutation(({input, ctx}) => {
+      const taskwarrior = new TaskwarriorLib();
+      taskwarrior.update([
+        {
+          description: input.title,
+          project: input.project,
+        }
+      ]);
     }),
 
   /**

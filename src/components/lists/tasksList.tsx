@@ -10,7 +10,8 @@ import { DateTime, Interval } from "luxon";
 
 interface Props {
     project?: string,
-    filterUserFavorites?: boolean
+    filterUserFavorites?: boolean,
+    title?: string,
 }
 type TodoStatus = "Pending" | "Waiting" | "Completed";
 
@@ -39,7 +40,7 @@ export default function TasksList(props: Props) {
     }
 
     const tasksQuery = api.tasks.get.useQuery({filter: getTasksFilter});
-    const addTaskMutator = api.tasks.addTaskWithTitle.useMutation();
+    const addTaskMutator = api.tasks.add.useMutation();
 
     // Determine if we're loading
     const loading = tasksQuery.data == undefined || addTaskMutator.isLoading;
@@ -103,19 +104,19 @@ export default function TasksList(props: Props) {
     // Callback for adding a quick task
     const context = api.useContext();
     const addTaskCallback = (title: string, done: () => void) => {
-        // addTaskMutator.mutate({
-        //     groupId: props.group?.id,
-        //     title: title,
-        // }, {
-        //     onSuccess: () => {
-        //         done();
-        //         void context.tasks.invalidate();
-        //     }
-        // })
+        addTaskMutator.mutate({
+            title: title,
+            project: props.project
+        }, {
+            onSuccess: () => {
+                done();
+                void context.tasks.invalidate();
+            }
+        })
     }
 
     // Render the list of tasks
-    const addPlaceholder = props.project == null ? undefined : "Add a Task";
+    const addPlaceholder = "Add a Task";
     return <div className={containerStyle} >
         <ModalFormContainer
             shown={modifyTaskId !== undefined}
@@ -125,7 +126,7 @@ export default function TasksList(props: Props) {
             {modifyTaskId != null ? <TaskEdit task={modifyTaskId} onRequestClose={() => setModifyTaskId(undefined)} /> : undefined}
         </ModalFormContainer>
         <div className="flex relative">
-            <h2>{props.project}</h2>
+            <h2>{props.title ?? props.project}</h2>
             <FilterSelector status={filter} setStatus={setFilter} />
         </div>
         <ListContainer

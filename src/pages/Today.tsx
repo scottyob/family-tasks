@@ -5,10 +5,10 @@ export default function Today() {
     return (
         <>
             <div>
-              <StatusBar currentProject="Started & Due" />
+              <StatusBar currentProject="Inbox / Started / Due" />
             </div>
             <div className="overflow-auto grow">
-              <TaskList filterUserFavorites={true} />
+              <TaskList filterUserFavorites={true} title="Inbox" />
             </div>
         </>
       );
