@@ -43,6 +43,34 @@ export const tasksRouter = createTRPCRouter({
   }),
 
   /**
+   * Update Complete
+   */
+  setComplete: publicProcedure
+    .input(z.object({
+      taskUuid: z.string(),
+      complete: z.boolean(),
+    }))
+    .mutation(({ input, ctx}) => {
+      // Get the task with the given id.  Don't know how to load by UUID :(
+      const taskwarrior = new TaskwarriorLib();
+      const tasks = taskwarrior.load();
+
+      const task = tasks.find(t => t.uuid == input.taskUuid);
+      if(!task) {
+        throw Error("Task with given UUID not found");
+      }
+
+      task.status = "pending";
+      if(input.complete) {
+        task.status = "completed";
+        task.end = undefined;
+        task.start = undefined;
+      }
+
+      taskwarrior.update([task]);
+    }),
+
+  /**
    * Edit task form
    */
   edit: publicProcedure
@@ -156,91 +184,4 @@ export const tasksRouter = createTRPCRouter({
       });
     }),
 
-  /**
-   * Modifying
-   */
-  setCompleted: publicProcedure
-    .input(
-      z.object({
-        taskId: z.string(),
-        completed: z.boolean(),
-        availableOn: z.date().optional(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      // The user has completed (or unflagged-completed) a task.
-      // Load up the task
-      const task = await ctx.prisma.task.findUniqueOrThrow({
-        where: {
-          id: input.taskId,
-        },
-      });
-      if (!input.completed) {
-        // User is flagging a task as not having been completed
-        return await ctx.prisma.task.update({
-          where: {
-            id: task.id,
-          },
-          data: {
-            complete: false,
-          },
-        });
-      }
-
-      const recurringType = task.recurringType as RecurringType;
-      let complete = false;
-      let dueDate = undefined;
-      // The task has been complete
-      switch (recurringType) {
-        case RecurringType.Once:
-          complete = true;
-          break;
-        case RecurringType.AfterCompletion:
-          dueDate = new Date(
-            DateTime.now()
-              .plus({ days: task.repeatDays?.toNumber() })
-              .toMillis()
-          );
-          break;
-        case RecurringType.FromDueDate:
-          dueDate = task.dueDate;
-          if (dueDate == null) {
-            complete = true;
-            break;
-          }
-          dueDate.setDate(
-            dueDate.getDate() + (task?.repeatDays?.toNumber() ?? 0)
-          );
-      }
-
-      // Update the user's gold
-      const worth = TaskWorth(task);
-      if (worth.total > 0) {
-        await ctx.prisma.user.update({
-          where: {
-            id: ctx.user.id,
-          },
-          data: {
-            gold: { increment: worth.total },
-          },
-        });
-      }
-
-      // Account for uncomplete tasks that have availableOn
-      if (input.availableOn && input.completed && !complete) {
-        complete = true;
-      }
-
-      // Update the task
-      return await ctx.prisma.task.update({
-        where: {
-          id: input.taskId,
-        },
-        data: {
-          complete: complete,
-          dueDate: dueDate,
-          availableOn: input.availableOn || null,
-        },
-      });
-    }),
 });

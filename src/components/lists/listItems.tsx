@@ -91,7 +91,7 @@ interface CheckedListItemProps {
 }
 
 export function TaskListItem(props: CheckedListItemProps) {
-  const updateFlagged = api.tasks.setCompleted.useMutation();
+  const updateFlagged = api.tasks.setComplete.useMutation();
   const { task } = props;
 
   let textColor = "";
@@ -114,19 +114,18 @@ export function TaskListItem(props: CheckedListItemProps) {
   // Task Toggle
   const context = api.useContext();
   const toggleFlagged = () => {
-    // updateFlagged.mutate(
-    //   {
-    //     taskId: props.task.id,
-    //     completed: isComplete,
-    //     availableOn: availableOn,
-    //   },
-    //   {
-    //     onSuccess: () => {
-    //       void context.tasks.invalidate();
-    //       void context.users.invalidate(); // Money values has changed
-    //     },
-    //   }
-    // );
+    // If the task is already complete, flag it as not
+    const isComplete = task.status == "completed" ? false : true;
+
+    // Update the task, then invalidate
+    updateFlagged.mutate({
+      taskUuid: props.task.uuid as string,
+      complete: isComplete
+    }, {
+      onSuccess: () => {
+        void context.tasks.invalidate();
+      }
+    });
   };
 
   // Task completion date shown
@@ -177,7 +176,7 @@ export function TaskListItem(props: CheckedListItemProps) {
       color = "bg-amber-400";
     }
     dueJsx = (
-      <div className={"flex space-x-1 " + dateColor}>
+      <div className={"flex space-x-1 " + dateColor} title={dueDate.toLocaleString()}>
         <HiOutlineCalendar className="inline" size={16} />
         <div>
           {task.status == "waiting" ? "Available" : "Due"} {dueDateStr}

@@ -75,10 +75,16 @@ export default function TasksList(props: Props) {
             return compareTime;
         };
 
+        // First, if the tasks are complete, put them up top
+        if(a.end && b.end) {
+            return compareDates(b.end, a.end);
+        }
+
         // First compare the status
-        if (a.start === b.start) {
+        else if (a.start === b.start) {
             return compareDates(a.due, b.due)
         }
+
         // Next active states come first
         if (a.start === b.start) return 0;
         if (a.start == null) return 1;
