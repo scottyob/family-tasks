@@ -2,13 +2,12 @@ import { type User } from ".prisma/client";
 import React, { type ReactElement } from "react";
 import { BiCheck } from "react-icons/bi";
 import { HiOutlineCalendar } from "react-icons/hi2";
-import { FaRunning } from "react-icons/fa";
+import { FaRunning, FaCubes } from "react-icons/fa";
 import { api } from "~/utils/api";
 import { Avatar } from "../avatar";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
-import { ExtTask, TaskWorth } from "~/utils/taskLib";
+import { Task, TaskWorth } from "~/utils/taskLib";
 import { DateTime, Interval } from "luxon";
-import { Task } from "taskwarrior-lib";
 
 interface Props {
   text: string;
@@ -87,7 +86,7 @@ export function StandardListItem(props: Props) {
 }
 
 interface CheckedListItemProps {
-  task: ExtTask;
+  task: Task;
   onSelected?: () => void;
 }
 
@@ -105,6 +104,9 @@ export function TaskListItem(props: CheckedListItemProps) {
 
   if (task.status == "completed") {
     leftIcon = <BiCheck size={20} />;
+    textColor = "text-gray-400";
+    color = "bg-gray-400";
+  } else if(task.status == "waiting") {
     textColor = "text-gray-400";
     color = "bg-gray-400";
   }
@@ -129,9 +131,14 @@ export function TaskListItem(props: CheckedListItemProps) {
 
   // Task completion date shown
   let dueJsx = null;
-  if (task.due) {
+  if (task.status == "waiting" || (task.due && task.status == "pending")) {
     const now = DateTime.now();
-    const dueDate = DateTime.fromISO(task.due); // task.dueDate
+    let dueDate = DateTime.now();
+    if (task.status == "waiting" && task.wait) {
+      dueDate = DateTime.fromISO(task.wait);
+    } else if (task.due) {
+      dueDate = DateTime.fromISO(task.due); // task.dueDate
+    }
     const dueInPast = now > dueDate;
     const dueIn = dueInPast
       ? Interval.fromDateTimes(dueDate, now)
@@ -153,7 +160,10 @@ export function TaskListItem(props: CheckedListItemProps) {
 
     // Set the color based on how recent the task is
     let dateColor = "text-gray-400";
-    if (hours < 0) {
+    if (task.status == "waiting") {
+      color = "bg-slate-400";
+    }
+    else if (hours < 0) {
       dateColor = "text-red-600";
       color = "bg-red-400 ";
     } else if (hours < 24) {
@@ -169,7 +179,9 @@ export function TaskListItem(props: CheckedListItemProps) {
     dueJsx = (
       <div className={"flex space-x-1 " + dateColor}>
         <HiOutlineCalendar className="inline" size={16} />
-        <div>Due {dueDateStr}</div>
+        <div>
+          {task.status == "waiting" ? "Available" : "Due"} {dueDateStr}
+        </div>
       </div>
     );
   }
@@ -229,6 +241,12 @@ export function TaskListItem(props: CheckedListItemProps) {
                 <div className="flex space-x-1 text-green-800">
                   <FaRunning className="inline" size={16} />
                   <div>Started</div>
+                </div>
+              ) : null}
+              {task.project ? (
+                <div className="flex space-x-1">
+                  <FaCubes className="inline" size={16} />
+                  <div>{task.project}</div>
                 </div>
               ) : null}
             </div>

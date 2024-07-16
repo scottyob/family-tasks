@@ -2,67 +2,11 @@ import { z } from "zod";
 import { RecurringType } from "~/utils/enums";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TaskEditInput } from "~/utils/inputs";
-import { TaskWorth } from "~/utils/taskLib";
+import { TaskFromTwTask, TaskWorth } from "~/utils/taskLib";
 import { DateTime } from "luxon";
 import { type PrismaClient } from "@prisma/client";
 
-import { TaskwarriorLib } from 'taskwarrior-lib';
-
-
-
-// Finds all tasks for a given user, or all tasks in a group
-async function tasksForUser(
-  ctx: PrismaClient,
-  userID?: string,
-  groupID?: string,
-  before?: Date
-) {
-  const taskwarrior = new TaskwarriorLib();
-  return taskwarrior.load("active");
-
-  return await ctx.task.findMany({
-    where: {
-      groupId: groupID,
-      dueDate: {
-        lte: before,
-      },
-      assignedToId: userID,
-    },
-    include: {
-      assignedTo: true,
-    },
-  });
-}
-
-// Finds all tasks due in all the given user(s) groups, as long as they don't belong to someone else!
-async function tasksAvailable(
-  ctx: PrismaClient,
-  userID?: string,
-  before?: Date
-) {
-  const tasks = await ctx.task.findMany({
-    where: {
-      dueDate: {
-        lte: before,
-      },
-      group: {
-        users: {
-          some: {
-            userId: userID,
-          },
-        },
-      },
-    },
-    include: {
-      assignedTo: true,
-    }
-  });
-
-  // Filter out any that are assigned to a user other than self.
-  return tasks.filter(
-    (t) => t.assignedToId == null || t.assignedToId == userID
-  );
-}
+import { TaskwarriorLib } from "taskwarrior-lib";
 
 /**
  * Router for anything to do with users and groups
@@ -71,17 +15,32 @@ export const tasksRouter = createTRPCRouter({
   get: publicProcedure
     .input(
       z.object({
-        filter: z.string().optional()
+        filter: z.string().optional(),
       })
     )
-    .query(async ({ input, ctx }) => {
-      console.log("Getting tasks!");
+    .query(({ input, ctx }) => {
+      let filter = "'(status:pending and (+ACTIVE or due))'";
+      if(input.filter) {
+        filter = input.filter;
+      }
 
       const taskwarrior = new TaskwarriorLib();
-      const ret = taskwarrior.load("'(status:pending and (+ACTIVE or due))'");
-      console.log(ret);
-      return ret;
+      return taskwarrior.load(filter).map(t => TaskFromTwTask(t));
     }),
+
+  getProjects: publicProcedure.query(({}) => {
+    const taskwarrior = new TaskwarriorLib();
+    
+    // Return a list of projects from all of the found tasks in our db
+    return [
+      ...new Set(
+        taskwarrior
+          .load()
+          .filter((t) => t.project)
+          .map((t) => t.project)
+      ),
+    ] as string[];
+  }),
 
   /**
    * Edit task form

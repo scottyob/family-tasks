@@ -5,7 +5,7 @@ import TaskEdit from "../forms/taskEdit";
 import ListContainer from "./listContainer";
 import { TaskListItem } from "./listItems";
 import { TaskStatus } from "taskwarrior-lib";
-import { ExtTask } from "~/utils/taskLib";
+import { Task } from "~/utils/taskLib";
 import { DateTime, Interval } from "luxon";
 
 interface Props {
@@ -28,11 +28,16 @@ function FilterSelector(props: {
 
 export default function TasksList(props: Props) {
     const [filter, setFilter] = React.useState<TodoStatus>("Pending");
-    const [modifyTaskId, setModifyTaskId] = React.useState<ExtTask | undefined>();
+    const [modifyTaskId, setModifyTaskId] = React.useState<Task | undefined>();
     const user = api.users.currentUser.useQuery().data;
 
     // Get a list of tasks from the database
-    const tasksQuery = api.tasks.get.useQuery({});
+    let getTasksFilter = undefined;
+    if(props.project) {
+        getTasksFilter = "project:'" + props.project + "'"
+    }
+
+    const tasksQuery = api.tasks.get.useQuery({filter: getTasksFilter});
     const addTaskMutator = api.tasks.addTaskWithTitle.useMutation();
 
     // Determine if we're loading
@@ -40,7 +45,7 @@ export default function TasksList(props: Props) {
     const containerStyle = "p-2 " + (loading ? "animate-pulse" : "");
 
     // Render a list of tasks from the server
-    let tasks = (tasksQuery.data || []) as ExtTask[]
+    let tasks = [...(tasksQuery.data || [])] as Task[]
 
     // Filter the tasks based on the selected filter
     switch (filter) {
@@ -56,6 +61,7 @@ export default function TasksList(props: Props) {
             // handle invalid filter values here, if desired
             break;
     }
+
     // Sort em
     tasks = tasks.sort((a, b) => {
         // Helper function to compare dates
