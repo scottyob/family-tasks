@@ -1,19 +1,17 @@
-import { type Group, type Task } from ".prisma/client";
 import { ModalFormContainer } from "~/components/forms/modalFormContainer";
 import React from "react";
 import { api } from "~/utils/api";
 import TaskEdit from "../forms/taskEdit";
 import ListContainer from "./listContainer";
 import { TaskListItem } from "./listItems";
-import { DateTime } from "luxon";
+import { TaskStatus } from "taskwarrior-lib";
+import { ExtTask } from "~/utils/taskLib";
+import { DateTime, Interval } from "luxon";
 
 interface Props {
-    group?: Group;
-    filterToday?: boolean;
-    allAvailable?: boolean
+    project?: string
 }
-
-type TodoStatus = "Active" | "Scheduled" | "Complete";
+type TodoStatus = "Pending" | "Waiting" | "Completed";
 
 function FilterSelector(props: {
     status: TodoStatus;
@@ -22,29 +20,19 @@ function FilterSelector(props: {
     const selected = "underline decoration-2 underline-offset-8 text-purple-800";
 
     return <div className="vt323 cursor-pointer text-sm align-text-bottom p-2 space-x-2 flex absolute right-0 bottom-0">
-        <div className={props.status == "Active" ? selected : ""} onClick={() => props.setStatus("Active")}>Active</div>
-        <div className={props.status == "Scheduled" ? selected : ""} onClick={() => props.setStatus("Scheduled")}>Scheduled</div>
-        <div className={props.status == "Complete" ? selected : ""} onClick={() => props.setStatus("Complete")}>Complete</div>
+        <div className={props.status == "Pending" ? selected : ""} onClick={() => props.setStatus("Pending")}>Pending</div>
+        <div className={props.status == "Waiting" ? selected : ""} onClick={() => props.setStatus("Waiting")}>Waiting</div>
+        <div className={props.status == "Completed" ? selected : ""} onClick={() => props.setStatus("Completed")}>Completed</div>
     </div>
 }
 
 export default function TasksList(props: Props) {
-    const [filter, setFilter] = React.useState<TodoStatus>("Active");
-    const [modifyTaskId, setModifyTaskId] = React.useState<Task | undefined>();
-    let before = undefined;
+    const [filter, setFilter] = React.useState<TodoStatus>("Pending");
+    const [modifyTaskId, setModifyTaskId] = React.useState<ExtTask | undefined>();
     const user = api.users.currentUser.useQuery().data;
 
-    // Filter today's
-    if(props.filterToday) {
-        before = DateTime.now().endOf("day").toJSDate();
-    }
-
-    // Database interactions
-    const tasksQuery = api.tasks.tasksForGroupByType.useQuery({
-        groupId: props.group?.id,
-        before,
-        allAvailable: props.allAvailable,
-    });
+    // Get a list of tasks from the database
+    const tasksQuery = api.tasks.get.useQuery({});
     const addTaskMutator = api.tasks.addTaskWithTitle.useMutation();
 
     // Determine if we're loading
@@ -52,67 +40,64 @@ export default function TasksList(props: Props) {
     const containerStyle = "p-2 " + (loading ? "animate-pulse" : "");
 
     // Render a list of tasks from the server
-    let tasksList = [<div key=""></div>];
-    let tasks = tasksQuery.data
-    if (tasks != null) {
-        // Filter the tasks based on the selected filter
-        switch (filter) {
-            case "Active":
-                tasks = tasks.filter(task => !task.complete);
-                break;
-            case "Complete":
-                tasks = tasks.filter(task => task.complete);
-                break;
-            case "Scheduled":
-                tasks = tasks.filter(task => !task.complete && task.dueDate != null)
-            default:
-                // handle invalid filter values here, if desired
-                break;
-        }
-        // Sort em
-        tasks = tasks.sort((a, b) => {
-            // First, compare by userID
-            if (a.assignedToId === user?.id && b.assignedToId !== user?.id) {
-                return -1; // a comes first
-            } else if (a.assignedToId !== user?.id && b.assignedToId === user?.id) {
-                return 1; // b comes first
-            } else {
-                // Second, compare by due date (if available)
-                if (!a.dueDate && !b.dueDate) {
-                    return 0;
-                } else if (!a.dueDate) {
-                    return 1;
-                } else if (!b.dueDate) {
-                    return -1;
-                } else {
-                    return a.dueDate.getTime() - b.dueDate.getTime();
-                }
-            }
-        });
+    let tasks = (tasksQuery.data || []) as ExtTask[]
 
-        tasksList = tasks.map(t => <TaskListItem key={t.id} task={t} onSelected={() => { setModifyTaskId(t) }} />);
+    // Filter the tasks based on the selected filter
+    switch (filter) {
+        case "Pending":
+            tasks = tasks.filter(task => task.status === "pending");
+            break;
+        case "Waiting":
+            tasks = tasks.filter(task => task.status === "waiting");
+            break;
+        case "Completed":
+            tasks = tasks.filter(task => task.status === "completed")
+        default:
+            // handle invalid filter values here, if desired
+            break;
     }
+    // Sort em
+    tasks = tasks.sort((a, b) => {
+        // Helper function to compare dates
+        const compareDates = (dateA: string | undefined, dateB: string | undefined) => {
+            if (dateA === dateB) return 0;
+            if (dateA == null) return 1;
+            if (dateB == null) return -1;
+
+            const compareTime = DateTime.fromISO(dateA).toMillis() - DateTime.fromISO(dateB).toMillis();
+            console.log("Compare time: ", compareTime);
+            return compareTime;
+        };
+
+        // First compare the status
+        if (a.start === b.start) {
+            return compareDates(a.due, b.due)
+        }
+        // Next active states come first
+        if (a.start === b.start) return 0;
+        if (a.start == null) return 1;
+        if (b.start == null) return -1;
+        return new Date(a.start).getTime() - new Date(b.start).getTime();
+    });
+
+    const tasksList = tasks.map(t => <TaskListItem key={t.uuid} task={t} onSelected={() => { setModifyTaskId(t) }} />);
 
     // Callback for adding a quick task
     const context = api.useContext();
     const addTaskCallback = (title: string, done: () => void) => {
-        if (props.group == null) {
-            return;
-        }
-
-        addTaskMutator.mutate({
-            groupId: props.group?.id,
-            title: title,
-        }, {
-            onSuccess: () => {
-                done();
-                void context.tasks.invalidate();
-            }
-        })
+        // addTaskMutator.mutate({
+        //     groupId: props.group?.id,
+        //     title: title,
+        // }, {
+        //     onSuccess: () => {
+        //         done();
+        //         void context.tasks.invalidate();
+        //     }
+        // })
     }
 
     // Render the list of tasks
-    const addPlaceholder = props.group == null ? undefined : "Add a Task";
+    const addPlaceholder = props.project == null ? undefined : "Add a Task";
     return <div className={containerStyle} >
         <ModalFormContainer
             shown={modifyTaskId !== undefined}
@@ -122,7 +107,7 @@ export default function TasksList(props: Props) {
             {modifyTaskId != null ? <TaskEdit task={modifyTaskId} onRequestClose={() => setModifyTaskId(undefined)} /> : undefined}
         </ModalFormContainer>
         <div className="flex relative">
-            <h2>{props.group?.name}</h2>
+            <h2>{props.project}</h2>
             <FilterSelector status={filter} setStatus={setFilter} />
         </div>
         <ListContainer

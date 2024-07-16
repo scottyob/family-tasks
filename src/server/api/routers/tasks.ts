@@ -6,6 +6,10 @@ import { TaskWorth } from "~/utils/taskLib";
 import { DateTime } from "luxon";
 import { type PrismaClient } from "@prisma/client";
 
+import { TaskwarriorLib } from 'taskwarrior-lib';
+
+
+
 // Finds all tasks for a given user, or all tasks in a group
 async function tasksForUser(
   ctx: PrismaClient,
@@ -13,6 +17,9 @@ async function tasksForUser(
   groupID?: string,
   before?: Date
 ) {
+  const taskwarrior = new TaskwarriorLib();
+  return taskwarrior.load("active");
+
   return await ctx.task.findMany({
     where: {
       groupId: groupID,
@@ -61,6 +68,21 @@ async function tasksAvailable(
  * Router for anything to do with users and groups
  */
 export const tasksRouter = createTRPCRouter({
+  get: publicProcedure
+    .input(
+      z.object({
+        filter: z.string().optional()
+      })
+    )
+    .query(async ({ input, ctx }) => {
+      console.log("Getting tasks!");
+
+      const taskwarrior = new TaskwarriorLib();
+      const ret = taskwarrior.load("'(status:pending and (+ACTIVE or due))'");
+      console.log(ret);
+      return ret;
+    }),
+
   /**
    * Edit task form
    */

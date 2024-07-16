@@ -1,12 +1,14 @@
-import { type Task, type User } from ".prisma/client";
+import { type User } from ".prisma/client";
 import React, { type ReactElement } from "react";
 import { BiCheck } from "react-icons/bi";
 import { HiOutlineCalendar } from "react-icons/hi2";
+import { FaRunning } from "react-icons/fa";
 import { api } from "~/utils/api";
 import { Avatar } from "../avatar";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
-import { TaskWorth } from "~/utils/taskLib";
+import { ExtTask, TaskWorth } from "~/utils/taskLib";
 import { DateTime, Interval } from "luxon";
+import { Task } from "taskwarrior-lib";
 
 interface Props {
   text: string;
@@ -45,7 +47,8 @@ export function StandardListItem(props: Props) {
     worthElement = <span>- 🪙{props.value.toString()}</span>;
   }
 
-  const outerClassName = "m-0.5 flex min-h-[60px]" + (props.loading ? " animate-pulse" : "");
+  const outerClassName =
+    "m-0.5 flex min-h-[60px]" + (props.loading ? " animate-pulse" : "");
   return (
     <div className={outerClassName}>
       {/* Left container */}
@@ -84,7 +87,7 @@ export function StandardListItem(props: Props) {
 }
 
 interface CheckedListItemProps {
-  task: Task & { assignedTo: User | null };
+  task: ExtTask;
   onSelected?: () => void;
 }
 
@@ -100,7 +103,7 @@ export function TaskListItem(props: CheckedListItemProps) {
   color = "bg-green-400";
   // color = 'bg-gray-400';
 
-  if (props.task.complete) {
+  if (task.status == "completed") {
     leftIcon = <BiCheck size={20} />;
     textColor = "text-gray-400";
     color = "bg-gray-400";
@@ -109,38 +112,26 @@ export function TaskListItem(props: CheckedListItemProps) {
   // Task Toggle
   const context = api.useContext();
   const toggleFlagged = () => {
-    const isComplete = !props.task.complete;
-    let availableOn = undefined;
-
-    // Calculate the date it's available on
-    if (isComplete && props.task.availableInDays) {
-      // Calculate the date this should be next available in.
-      availableOn = DateTime.now()
-        .plus({ days: Number(props.task.availableInDays) })
-        .startOf("day")
-        .toJSDate();
-    }
-
-    updateFlagged.mutate(
-      {
-        taskId: props.task.id,
-        completed: isComplete,
-        availableOn: availableOn,
-      },
-      {
-        onSuccess: () => {
-          void context.tasks.invalidate();
-          void context.users.invalidate(); // Money values has changed
-        },
-      }
-    );
+    // updateFlagged.mutate(
+    //   {
+    //     taskId: props.task.id,
+    //     completed: isComplete,
+    //     availableOn: availableOn,
+    //   },
+    //   {
+    //     onSuccess: () => {
+    //       void context.tasks.invalidate();
+    //       void context.users.invalidate(); // Money values has changed
+    //     },
+    //   }
+    // );
   };
 
   // Task completion date shown
   let dueJsx = null;
-  if (task.dueDate) {
+  if (task.due) {
     const now = DateTime.now();
-    const dueDate = DateTime.fromSeconds(task.dueDate.getTime() / 1000); // task.dueDate
+    const dueDate = DateTime.fromISO(task.due); // task.dueDate
     const dueInPast = now > dueDate;
     const dueIn = dueInPast
       ? Interval.fromDateTimes(dueDate, now)
@@ -149,11 +140,18 @@ export function TaskListItem(props: CheckedListItemProps) {
     hours = dueInPast ? -1 * hours : hours;
 
     // Human readable date string.  If two weeks out from today, just show the date
-    const dueDateStr =
-      Math.abs(hours) > 24 * 14
-        ? dueDate.toLocaleString()
-        : dueDate.toRelativeCalendar({ unit: "days" });
+    let dueDateStr = "";
+    if (Math.abs(hours) > 24 * 14) {
+      dueDateStr = dueDate.toLocaleString();
+    } else if (Math.abs(hours) > 24) {
+      dueDateStr = dueDate.toRelativeCalendar({ unit: "days" }) as string;
+    } else if (Math.abs(hours) > 1) {
+      dueDateStr = dueDate.toRelativeCalendar({ unit: "hours" }) as string;
+    } else {
+      dueDateStr = dueDate.toRelativeCalendar({ unit: "minutes" }) as string;
+    }
 
+    // Set the color based on how recent the task is
     let dateColor = "text-gray-400";
     if (hours < 0) {
       dateColor = "text-red-600";
@@ -169,7 +167,7 @@ export function TaskListItem(props: CheckedListItemProps) {
       color = "bg-amber-400";
     }
     dueJsx = (
-      <div className={"flex space-x-1 text-xs font-bold " + dateColor}>
+      <div className={"flex space-x-1 " + dateColor}>
         <HiOutlineCalendar className="inline" size={16} />
         <div>Due {dueDateStr}</div>
       </div>
@@ -178,29 +176,15 @@ export function TaskListItem(props: CheckedListItemProps) {
 
   // Task worth JSX
   const taskWorth = TaskWorth(task);
-
-  let worth = <span>- 🪙{task.completionValue?.toString() || ""}</span>;
-  if (taskWorth.penalty > 0) {
-    worth = (
-      <>
-        <span>- 🪙{taskWorth.total?.toString()} </span>
-        <div className="inline align-text-top text-[10px]">
-          <span>({task.completionValue?.toString() || ""}</span>
-          <span
-            className={
-              taskWorth.operator == "-" ? "text-red-600" : "text-green-500"
-            }
-          >
-            {" "}
-            {taskWorth.operator} {taskWorth.penalty}
-          </span>
-          )
-        </div>
-      </>
-    );
-  }
-  if (taskWorth.total <= 0) {
+  let worth = <span>- 🪙{taskWorth}</span>;
+  if (taskWorth <= 0) {
     worth = <></>;
+  }
+
+  // Change the background color if the task has been "Started"
+  let bgColor = "bg-gray-50";
+  if (task.start) {
+    bgColor = "bg-green-200/40";
   }
 
   return (
@@ -213,14 +197,14 @@ export function TaskListItem(props: CheckedListItemProps) {
         }
         onClick={toggleFlagged}
       >
-        <div className="min-h-[20px] min-w-[20px] bg-gray-200/40">
+        <div className={"min-h-[20px] min-w-[20px] bg-gray-200/40"}>
           {leftIcon}
         </div>
       </div>
 
       {/* Text container */}
       <div
-        className="flex grow rounded-r-lg bg-gray-50 p-2"
+        className={"flex grow rounded-r-lg p-2 " + bgColor}
         onClick={() => {
           if (props.onSelected) {
             props.onSelected();
@@ -230,14 +214,24 @@ export function TaskListItem(props: CheckedListItemProps) {
         <div className="flex grow place-self-center">
           <div className="grow flex-row">
             <div className={textColor}>
-              {props.task.title} {worth}
+              {task.id}: {task.description} {worth}
             </div>
             {task.notes ? (
               <div className="prose pb-2 pt-2 text-xs">
                 <ReactMarkdown>{task.notes}</ReactMarkdown>
               </div>
             ) : null}
-            {dueJsx}
+
+            {/* Below task, status info */}
+            <div className="flex space-x-4 text-xs font-bold text-gray-500">
+              {dueJsx}
+              {task.start ? (
+                <div className="flex space-x-1 text-green-800">
+                  <FaRunning className="inline" size={16} />
+                  <div>Started</div>
+                </div>
+              ) : null}
+            </div>
           </div>
           <div className="min-h-full">
             {task.assignedTo ? (

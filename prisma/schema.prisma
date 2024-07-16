@@ -46,9 +46,7 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-  groups        UsersOnGroups[]
   gold          Int             @default(0)
-  Task          Task[]
 }
 
 model VerificationToken {
@@ -57,50 +55,6 @@ model VerificationToken {
   expires    DateTime
 
   @@unique([identifier, token])
-}
-
-// More app stuff
-
-model UsersOnGroups {
-  user    User   @relation(fields: [userId], references: [id])
-  group   Group  @relation(fields: [groupId], references: [id])
-  userId  String
-  groupId String
-
-  @@id([userId, groupId])
-}
-
-model Group {
-  id    String          @id @default(uuid())
-  name  String
-  users UsersOnGroups[]
-  Task  Task[]
-}
-
-model Task {
-  id       String  @id @default(uuid())
-  title    String
-  notes    String?
-  complete Boolean @default(false)
-
-  group   Group  @relation(fields: [groupId], references: [id])
-  groupId String
-
-  assignedTo   User?   @relation(fields: [assignedToId], references: [id])
-  assignedToId String?
-
-  completionValue Decimal?
-  offsetValue     Decimal?
-  offsetType      String   @default("Same") // Should be "Same", "Increase" or "Decrease"
-
-  dueDate       DateTime?
-  recurringType String    @default("Once") // should be "Once", "From Due Date", "After Completion"
-  repeatDays    Decimal? // Due every X number of days
-
-  // If the task is complete, when it should be next "available" (not complete)
-  // Delta stored
-  availableOn     DateTime?
-  availableInDays Decimal?
 }
 
 // Rewards are saved templates that a playser may purchase for coins
