@@ -19,7 +19,7 @@ export const tasksRouter = createTRPCRouter({
       })
     )
     .query(({ input, ctx }) => {
-      let filter = "'(status:pending and (+ACTIVE or due or -PROJECT))'";
+      let filter = "";
       if(input.filter) {
         filter = input.filter;
       }

@@ -5,7 +5,7 @@ import TaskEdit from "../forms/taskEdit";
 import ListContainer from "./listContainer";
 import { TaskListItem } from "./listItems";
 import { TaskStatus } from "taskwarrior-lib";
-import { Task } from "~/utils/taskLib";
+import { FavoriteProject, Task } from "~/utils/taskLib";
 import { DateTime, Interval } from "luxon";
 
 interface Props {
@@ -33,6 +33,11 @@ export default function TasksList(props: Props) {
     const [modifyTaskId, setModifyTaskId] = React.useState<Task | undefined>();
     const user = api.users.currentUser.useQuery().data;
 
+    const className = {
+        container: "p-2 max-w-lg m-auto",
+        loading: "animate-pulse"
+    }
+
     // Get a list of tasks from the database
     let getTasksFilter = undefined;
     if(props.project) {
@@ -44,14 +49,37 @@ export default function TasksList(props: Props) {
 
     // Determine if we're loading
     const loading = tasksQuery.data == undefined || addTaskMutator.isLoading;
-    const containerStyle = "p-2 " + (loading ? "animate-pulse" : "");
+    const containerStyleClassName = [className.container, (loading ? className.loading : "")].join(" ");
 
     // Render a list of tasks from the server
     let tasks = [...(tasksQuery.data || [])] as Task[]
     
     if(props.filterUserFavorites && user?.favoriteProjects) {
-        const userFavoriteProjects = new Set(JSON.parse(user.favoriteProjects) as string[])
-        tasks = tasks.filter(t => !t.project || userFavoriteProjects.has(t.project))
+        const userFavoriteProjects = JSON.parse(user.favoriteProjects) as FavoriteProject[]
+
+        // Filter the tasks out based on the user starred settings
+        tasks = tasks.filter(t => {
+            // Tasks that don't have a project should always be shown
+            if(!t.project)
+                return true;
+            
+            const userProjectSetting = userFavoriteProjects.find(s => s.projectName == t.project);
+            
+            // If the user has not starred this, get it out of here.
+            if(!userProjectSetting)
+                return false;
+
+            // If it's always in the users inbox, show it regardless
+            if(userProjectSetting.showInHome)
+                return true;
+
+            // And by default, show it if the task is started, or due
+            if(t.start || t.due)
+                return true;
+
+            return false;
+
+        })
     }
 
     // Filter the tasks based on the selected filter
@@ -117,7 +145,7 @@ export default function TasksList(props: Props) {
 
     // Render the list of tasks
     const addPlaceholder = "Add a Task";
-    return <div className={containerStyle} >
+    return <div className={containerStyleClassName} >
         <ModalFormContainer
             shown={modifyTaskId !== undefined}
             title={`Edit Task}`}

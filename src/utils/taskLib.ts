@@ -24,6 +24,11 @@ export function TaskFromTwTask(task: TaskWarriorTask): Task {
   return t;
 }
 
+export interface FavoriteProject {
+  projectName: string,
+  showInHome?: boolean
+}
+
 export function TaskWorth(task: Task) {
   return 0;
   // const noPenalty = {

@@ -5,6 +5,7 @@ import { ModalFormContainer } from "./forms/modalFormContainer";
 import { useState } from "react";
 import { api } from "~/utils/api";
 import { useRouter } from "next/router";
+import { FavoriteProject } from "~/utils/taskLib";
 
 const className = {
   header: "flex w-full text-3xl font-bold text-green-800 " + vt323.className,
@@ -20,32 +21,33 @@ export default function ProjectBar(props: { currentProject: string }) {
 
   if (user) {
     const projects = (
-      JSON.parse(user.favoriteProjects ?? "[]") as string[]
-    ).sort();
+      JSON.parse(user.favoriteProjects ?? "[]") as FavoriteProject[]
+    ).sort((a, b) =>
+      a.projectName > b.projectName ? 1 : a.projectName < b.projectName ? -1 : 0
+    );
 
-    const projectToLink = (isHome: boolean, p: string, title?: string) => (
+    const projectToLink = (isHome: boolean, url: string, p?: FavoriteProject, title?: string) => (
       <div
-        key={p}
+        key={title ?? p?.projectName}
         className={
           "m-4 rounded-lg p-3 text-center text-xl " +
-          vt323.className + 
-          (isHome ? " bg-yellow-100 " : " bg-slate-200 ")
+          vt323.className +
+          (isHome ? " bg-yellow-100 " : p?.showInHome ? " bg-yellow-400 " : " bg-yellow-400/40 ")
         }
         onClick={() => {
           setProjectWindowShown(false);
           void (async () => {
-            await router.push(p);
+            await router.push(url);
           })();
         }}
       >
-        {title ?? p}
+        {title ?? p?.projectName}
       </div>
     );
-      
 
     const projectsJsx = [
-      projectToLink(true, "/", "Inbox, Tasks Started & Due"),
-      ...projects.map((p) => projectToLink(false, p))
+      projectToLink(true, "/", undefined, "Inbox, Tasks Started & Due"),
+      ...projects.map((p) => projectToLink(false, p.projectName, p, undefined)),
     ];
 
     projectWindow = (

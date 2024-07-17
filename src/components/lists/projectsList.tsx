@@ -3,41 +3,57 @@ import ListContainer from "./listContainer";
 import { StandardListItem } from "./listItems";
 import { useRouter } from "next/router";
 import { FaRegStar, FaStar } from "react-icons/fa";
+import { FavoriteProject } from "~/utils/taskLib";
 
-function ProjectListItem(props: { project: string; userFavorites: string[] }) {
+function ProjectListItem(props: { project: string; userFavorites: FavoriteProject[] }) {
   const router = useRouter();
   const favoriteMutation = api.users.setFavorites.useMutation();
   const context = api.useContext();
 
   // Get the current favorites from the user's profile
-  const favorites = new Set(props.userFavorites);
-  const p = props.project;
-  const favorite = favorites.has(p);
+  const favoriteSetting = props.userFavorites.find(f => f.projectName == props.project);
+  let color: "gray" | "gold" | "goldish" = "gray";
+  let interactiveIcon = <FaRegStar size={20} className="text-gray-600" />
+  if (favoriteSetting?.showInHome) {
+    interactiveIcon = <FaRegStar size={20} className="text-yellow-800" />
+    color = "gold";
+  }
+  else if(favoriteSetting) {
+    interactiveIcon = <FaRegStar size={20} className="text-yellow-800" />
+    color = "goldish";
+  }
 
   return (
     <StandardListItem
-      key={p}
-      text={p}
+      key={props.project}
+      text={props.project}
       loading={favoriteMutation.isLoading}
       leftInteractive={
-        favorites.has(p) ? <FaStar size={20} className="text-yellow-800" /> : <FaRegStar size={20} className="text-gray-600" />
+        interactiveIcon
       }
-      color={favorite ? "gold" : "gray"}
+      color={color}
       selected={() => {
         void (async () => {
-          await router.push(p);
+          await router.push(props.project);
         })();
       }}
       leftInteractiveClicked={() => {
         // Update our favorites list and call them
-        const setFavorite = !favorite;
-        const newFavorites = new Set(favorites);
-        if(!setFavorite) {
-          newFavorites.delete(p);
+        let newFavorites = [...props.userFavorites];
+        
+        // Change it from nothing, to favorite
+        if(!favoriteSetting) {
+          newFavorites.push({
+            projectName: props.project,
+          })
+        } else if(!favoriteSetting.showInHome)
+        {
+          favoriteSetting.showInHome = true;
         } else {
-          newFavorites.add(p);
+          // Delete it from our favorites all together
+          newFavorites = newFavorites.filter(p => p.projectName != props.project)
         }
-        favoriteMutation.mutate({favorites: [...newFavorites].sort()}, {
+        favoriteMutation.mutate(newFavorites, {
           onSuccess: () => {
             void context.users.invalidate();
           }

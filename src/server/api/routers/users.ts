@@ -29,15 +29,16 @@ export const usersRouter = createTRPCRouter({
 
   setFavorites: publicProcedure
     .input(z.object({
-      favorites: z.string().array()
-    }))
+      projectName: z.string(),
+      showInHome: z.boolean().optional(),
+    }).array())
     .mutation(async ({input, ctx}) => {
       return await ctx.prisma.user.update({
         where: {
           id: ctx.user.id
         },
         data: {
-          favoriteProjects: JSON.stringify(input.favorites)
+          favoriteProjects: JSON.stringify(input)
         }
       })
     }),

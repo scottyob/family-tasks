@@ -1,8 +1,8 @@
 import { type User } from ".prisma/client";
 import React, { type ReactElement } from "react";
-import { BiCheck } from "react-icons/bi";
+import { BiCheck, BiMenu } from "react-icons/bi";
 import { HiOutlineCalendar } from "react-icons/hi2";
-import { FaRunning, FaCubes } from "react-icons/fa";
+import { FaRunning, FaCubes, FaInbox } from "react-icons/fa";
 import { api } from "~/utils/api";
 import { Avatar } from "../avatar";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
@@ -12,7 +12,7 @@ import { DateTime, Interval } from "luxon";
 interface Props {
   text: string;
   selected?: () => void;
-  color?: "red" | "blue" | "green" | "gray" | "gold";
+  color?: "red" | "blue" | "green" | "gray" | "gold" | "goldish";
   value?: number;
   leftInteractive?: ReactElement;
   leftInteractiveClicked?: () => void;
@@ -33,6 +33,9 @@ export function StandardListItem(props: Props) {
       break;
     case "gold":
       bgColor = "bg-yellow-400";
+      break;
+    case "goldish":
+      bgColor = "bg-yellow-400/40";
       break;
     case "blue":
       bgColor = "bg-blue-400";
@@ -102,14 +105,14 @@ export function TaskListItem(props: CheckedListItemProps) {
 
   let color = "bg-red-400 ";
   color = "bg-blue-400";
-  color = "bg-green-400";
+  color = "bg-gray-300";
   // color = 'bg-gray-400';
 
   if (task.status == "completed") {
     leftIcon = <BiCheck size={20} />;
     textColor = "text-gray-400";
     color = "bg-gray-400";
-  } else if(task.status == "waiting") {
+  } else if (task.status == "waiting") {
     textColor = "text-gray-400";
     color = "bg-gray-400";
   }
@@ -121,14 +124,17 @@ export function TaskListItem(props: CheckedListItemProps) {
     const isComplete = task.status == "completed" ? false : true;
 
     // Update the task, then invalidate
-    updateFlagged.mutate({
-      taskUuid: props.task.uuid as string,
-      complete: isComplete
-    }, {
-      onSuccess: () => {
-        void context.tasks.invalidate();
+    updateFlagged.mutate(
+      {
+        taskUuid: props.task.uuid as string,
+        complete: isComplete,
+      },
+      {
+        onSuccess: () => {
+          void context.tasks.invalidate();
+        },
       }
-    });
+    );
   };
 
   // Task completion date shown
@@ -164,22 +170,24 @@ export function TaskListItem(props: CheckedListItemProps) {
     let dateColor = "text-gray-400";
     if (task.status == "waiting") {
       color = "bg-slate-400";
-    }
-    else if (hours < 0) {
+    } else if (hours < 0) {
       dateColor = "text-red-600";
       color = "bg-red-400 ";
     } else if (hours < 24) {
       dateColor = "text-orange-400";
-      color = "bg-orange-400";
+      color = "bg-red-400/80 ";
     } else if (hours < 48) {
       dateColor = "text-orange-400";
-      color = "bg-orange-300";
+      color = "bg-orange-400/70 ";
     } else if (hours < 24 * 7) {
       // due this week
-      color = "bg-amber-400";
+      color = "bg-orange-400/50 ";
     }
     dueJsx = (
-      <div className={"flex space-x-1 " + dateColor} title={dueDate.toLocaleString()}>
+      <div
+        className={"flex space-x-1 " + dateColor}
+        title={dueDate.toLocaleString()}
+      >
         <HiOutlineCalendar className="inline" size={16} />
         <div>
           {task.status == "waiting" ? "Available" : "Due"} {dueDateStr}
@@ -225,6 +233,7 @@ export function TaskListItem(props: CheckedListItemProps) {
           }
         }}
       >
+        {/* Main task information */}
         <div className="flex grow place-self-center">
           <div className="grow flex-row">
             <div className={textColor}>
@@ -245,18 +254,20 @@ export function TaskListItem(props: CheckedListItemProps) {
                   <div>Started</div>
                 </div>
               ) : null}
-              {task.project ? (
-                <div className="flex space-x-1">
+              <div className="flex space-x-1">
+                {task.project ? (
                   <FaCubes className="inline" size={16} />
-                  <div>{task.project}</div>
-                </div>
-              ) : null}
+                ) : (
+                  <FaInbox className="inline" size={16} />
+                )}
+                <div>{task.project ?? "Inbox"}</div>
+              </div>
             </div>
           </div>
-          <div className="min-h-full">
-            {task.assignedTo ? (
-              <Avatar user={task.assignedTo} hideMoney={true} size="s" />
-            ) : null}
+
+          {/* Right hand side */}
+          <div className="flex min-h-full">
+            <BiMenu className="self-center" />
           </div>
         </div>
       </div>
