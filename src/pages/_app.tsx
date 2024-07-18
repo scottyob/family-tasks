@@ -37,12 +37,6 @@ function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
 }
 
 const MyApp: AppType<{ session: Session | null}> = ({ Component, pageProps: { session, ...pageProps} }) => {
-  // Pull all the information from the router
-  // TODO:  Delete This???
-  const projectsQuery = api.tasks.getProjects.useQuery();
-  const router = useRouter();
-  const urlProject = router.query['project']?.[0];
-
   return (
     <SessionProvider session={session}>
       <style jsx global>{`
@@ -63,6 +57,7 @@ const MyApp: AppType<{ session: Session | null}> = ({ Component, pageProps: { se
       <Head>
         <title>Family Tasks</title>
         <meta name="description" content="Tasks for the family" />
+        <meta name="theme-color" content="white" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
         <link rel="icon" href="/favicon.ico" />

@@ -16,7 +16,7 @@ const Home: NextPage = () => {
         <div>
           <ProjectBar currentProject={project} />
         </div>
-        <div className="overflow-auto grow">
+        <div>
           <TaskList project={project} />
         </div>
     </>

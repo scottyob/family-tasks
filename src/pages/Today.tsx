@@ -7,7 +7,7 @@ export default function Today() {
             <div>
               <StatusBar currentProject="Inbox / Started / Due" />
             </div>
-            <div className="overflow-auto grow">
+            <div>
               <TaskList filterUserFavorites={true} title="Inbox" />
             </div>
         </>
