@@ -6,6 +6,7 @@ import { api } from "~/utils/api";
 
 import "~/styles/globals.scss";
 import "~/styles/reactBootstrapTypeahead.scss";
+import "react-day-picker/dist/style.css";
 
 import 'react-tooltip/dist/react-tooltip.css'
 import 'swiper/css';

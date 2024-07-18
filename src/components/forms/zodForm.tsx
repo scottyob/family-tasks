@@ -7,8 +7,9 @@ import { DateTime } from "luxon";
 import { useState } from "react";
 import { useForm, Controller, type UseFormProps } from "react-hook-form";
 import { type z } from "zod";
-import { Command } from "cmdk";
 import { Typeahead } from "react-bootstrap-typeahead";
+import { DayPicker } from "react-day-picker";
+import * as Popover from "@radix-ui/react-popover";
 
 export function useZodForm<TSchema extends z.ZodType>(
   props: Omit<UseFormProps<TSchema["_input"]>, "resolver"> & {
@@ -18,7 +19,6 @@ export function useZodForm<TSchema extends z.ZodType>(
   const form = useForm<TSchema["_input"]>({
     ...props,
     resolver: zodResolver(props.schema, undefined),
-    
   });
 
   return form;
@@ -36,32 +36,15 @@ export function BasicInput(props: {
   const { methods, fieldName, schema } = props;
   let { inputType, value } = props;
   const errorMessage = methods.formState.errors[fieldName]?.message;
-  const [typeaheadValue, setTypeaheadValue] = useState("");
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
-  let setValueFunction = (v: any) => v;
+  const setValueFunction = (v: any) => v;
 
   if (!inputType && schema.shape[fieldName]?._def.typeName == "ZodBoolean") {
     inputType = "checkbox";
   }
   if (!inputType && props.options != null) {
     inputType = "select";
-  }
-  if (!inputType) {
-    const obj = schema.shape[fieldName];
-    if (
-      obj?._def.typeName === "ZodDate" ||
-      (obj?._def.innerType && obj?._def.innerType._def.typeName === "ZodDate")
-    ) {
-      inputType = "date";
-      if (value instanceof Date) {
-        value = DateTime.fromMillis(value.getTime()).toISODate();
-      }
-      setValueFunction = (v: any) => {
-        return v == ""
-          ? null
-          : DateTime.fromFormat(v as string, "yyyy-MM-dd").endOf("day");
-      };
-    }
   }
 
   const inputArgs = {
@@ -113,24 +96,62 @@ export function BasicInput(props: {
                   options={projects}
                   defaultInputValue={props.value?.toString()}
                   onInputChange={(input) => {
-                    console.log("On input change called");
-                    field.onChange(input)}
-                  }
+                    field.onChange(input);
+                  }}
                   onChange={(selected) => {
-                    console.log("On change called");
                     if (selected && selected.length > 0) {
                       field.onChange(selected[0]);
                     }
                   }}
                   onBlur={field.onBlur}
-                  
                 />
               );
             }}
           />
         </>
       );
+      break;
+    case "datetime":
+      input = (
+        <Controller
+          name={props.fieldName}
+          control={methods.control}
+          render={({ field }) => {
+            // Lob off the time for now.  Need to find a good supported component
+            let dateTime: DateTime | undefined = undefined;
 
+            if (field.value) {
+              dateTime = DateTime.fromISO(field.value as string);
+            }
+
+            return (
+              <Popover.Root open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <Popover.Trigger className="min-w-[50%] text-left">
+                  {dateTime?.toLocaleString() ?? <i>No Date</i>}
+                </Popover.Trigger>
+                <Popover.Content className="bg-white">
+                  <DayPicker
+                    mode="single"
+                    selected={dateTime?.toJSDate()}
+                    onSelect={(selection) => {
+                      // Convert this back to a time value
+                      let newStr: string | null = null;
+                      if (selection) {
+                        newStr = DateTime.fromISO(selection.toISOString(), {
+                          zone: "utc",
+                        }).toFormat("yyyyMMdd'T'HHmmss'Z'");
+                      }
+
+                      field.onChange(newStr);
+                      setCalendarOpen(false);
+                    }}
+                  />
+                </Popover.Content>
+              </Popover.Root>
+            );
+          }}
+        />
+      );
       break;
     default:
       input = <input {...inputArgs} />;

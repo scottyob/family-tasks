@@ -118,18 +118,20 @@ export const tasksRouter = createTRPCRouter({
     .mutation(async ({ input, ctx }) => {
       // Get the task, override from form properties, re-save
       const taskwarrior = new TaskwarriorLib();
-      const tasks = (taskwarrior.load() as Task[]);
-      const task = tasks.find(t => t.uuid == input.uuid);
-      if(!task)
-        throw Error("Task Not Found");
+      const tasks = taskwarrior.load() as Task[];
+      const task = tasks.find((t) => t.uuid == input.uuid);
+      if (!task) throw Error("Task Not Found");
 
       // Update from input
-      task.description = input.description;
-      task.notes = input.notes;
-      task.tags = input.tags;
-      task.project = input.project;
+      const newTask: Task = {
+        ...task,
+        ...input,
+        due: input?.due || undefined,
+        wait: input?.wait || undefined,
+      };
 
-      taskwarrior.update([task]);
+      console.log("Updating Task: ", newTask);
+      taskwarrior.update([newTask]);
     }),
 
   /**

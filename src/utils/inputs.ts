@@ -6,7 +6,11 @@ export const TaskEditInput = z.object({
   notes: z.string(),
   project: z.string().optional(),
   tags: z.string().array().optional(),
-  // due: z.string().datetime().optional(),
+  due: z.string().optional().nullable(),
+  wait: z.string().optional().nullable(),
+
+  completeRecurDue: z.string().optional(),
+  completeRecurWait: z.string().optional(),
 });
 
 export const RewardEditInput = z.object({
