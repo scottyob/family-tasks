@@ -18,17 +18,27 @@ export default function TaskListItemSettings(props: {
   reqClose: () => void;
 }) {
   const startedMutation = api.tasks.setStart.useMutation();
+  const deleteMutation = api.tasks.delete.useMutation();
+
   const context = api.useContext();
+
+  const stateUpdated = () => {
+    void (async () => {
+      await context.tasks.invalidate();
+      props.reqClose();
+    })();
+  };
 
   return (
     <div className="p-4">
-      <Link href={"/edit/" + (props.task.uuid as string)} ><button
-        type="button"
-        className={className.ListButton + " " + className.ListButtonWhite}
-      >
-        <FaEdit size={20} className={className.ButtonIcon} />
-        Edit Task
-      </button>
+      <Link href={"/edit/" + (props.task.uuid as string)}>
+        <button
+          type="button"
+          className={className.ListButton + " " + className.ListButtonWhite}
+        >
+          <FaEdit size={20} className={className.ButtonIcon} />
+          Edit Task
+        </button>
       </Link>
       <button
         type="button"
@@ -41,12 +51,7 @@ export default function TaskListItemSettings(props: {
               started: !props.task.start,
             },
             {
-              onSuccess: () => {
-                void (async () => {
-                  await context.tasks.invalidate();
-                  props.reqClose();
-                })();
-              },
+              onSuccess: () => stateUpdated,
             }
           );
         }}
@@ -73,6 +78,12 @@ export default function TaskListItemSettings(props: {
       <button
         type="button"
         className={className.ListButton + " " + className.ListButtonRed}
+        onClick={() =>
+          deleteMutation.mutate(
+            { uuid: props.task.uuid as string },
+            { onSuccess: stateUpdated }
+          )
+        }
       >
         <FaTrash size={20} className={className.ButtonIcon} />
         Delete Task

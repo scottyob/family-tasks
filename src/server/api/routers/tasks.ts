@@ -134,92 +134,15 @@ export const tasksRouter = createTRPCRouter({
       taskwarrior.update([newTask]);
     }),
 
-  /**
-   * Selecting tasks
-   */
-  tasksForGroupByType: publicProcedure
-    .input(
-      z.object({
-        groupId: z.string().optional(),
-        before: z.date().optional(),
-        allAvailable: z.boolean().default(false),
-      })
-    )
-    .query(async ({ input, ctx }) => {
-      // For user if no group specified.
-      let userId = undefined;
-      if (input.groupId == undefined) {
-        userId = ctx.user.id;
-      }
-
-      const tasks = input.allAvailable
-        ? await tasksAvailable(ctx.prisma, userId, input.before)
-        : await tasksForUser(ctx.prisma, userId, input.groupId, input.before);
-
-      // Check if any tasks are due to become available again
-      const madeAvailable = tasks.filter(
-        (t) => t.availableOn != null && t.availableOn.getTime() < Date.now()
-      );
-      madeAvailable.forEach((t) => {
-        t.availableOn = null;
-        t.complete = false;
-      });
-
-      // Update the database
-      await ctx.prisma.task.updateMany({
-        where: {
-          id: {
-            in: madeAvailable.map((t) => t.id),
-          },
-        },
-        data: {
-          complete: false,
-          availableOn: null,
-        },
-      });
-
-      return tasks;
-    }),
-
-  /**
-   * Creating
-   */
-  addTaskWithTitle: publicProcedure
-    .input(
-      z.object({
-        title: z.string(),
-        groupId: z.string(),
-      })
-    )
-    .mutation(async ({ input, ctx }) => {
-      // Get the users in this group
-      const groupUsers = await ctx.prisma.usersOnGroups.findMany({
-        where: {
-          groupId: input.groupId,
-        },
-      });
-
-      // If there's only one user in this group, assign them as the owner
-      let owner = null;
-      if (groupUsers.length == 1) {
-        owner = groupUsers[0]?.userId;
-      }
-
-      await ctx.prisma.task.create({
-        data: {
-          title: input.title,
-          groupId: input.groupId,
-          assignedToId: owner,
-        },
-      });
-    }),
   delete: publicProcedure
-    .input(z.object({ id: z.string() }))
+    .input(z.object({ uuid: z.string() }))
     .mutation(async ({ input, ctx }) => {
-      await ctx.prisma.task.delete({
-        where: {
-          id: input.id,
-        },
-      });
+      // Get the task, delete it
+      const taskwarrior = new TaskwarriorLib();
+      const tasks = taskwarrior.load() as Task[];
+      const task = tasks.find((t) => t.uuid == input.uuid);
+      if (!task) throw Error("Task Not Found");
+
+      taskwarrior.del([task]);
     }),
 });
