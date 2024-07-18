@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { useState } from "react";
 import { FaEdit, FaPlay, FaStop, FaTrash, FaUser } from "react-icons/fa";
 import { api } from "~/utils/api";
 import { type Task } from "~/utils/taskLib";
@@ -13,21 +14,66 @@ const className = {
   ButtonIcon: "pr-2",
 };
 
+function TaskOwnerList(props: { task: Task; reqClose: () => void }) {
+  // Get a list of possible owners
+  const ownersQuery = api.tasks.getUsers.useQuery();
+  const assignMutation = api.tasks.assign.useMutation();
+  const context = api.useContext();
+
+  let owners: (undefined | string)[] | undefined = ownersQuery.data;
+
+  if (!owners) {
+    return <div className="animate-pulse p-4">Loading</div>;
+  }
+
+  owners = [undefined, ...owners]; 
+
+  return (
+    <div className={"p-4 " + (assignMutation.isLoading ? "animate-pulse" : "")}>
+      {owners.map((o) => (
+        <button
+          key={o}
+          type="button"
+          className={className.ListButton + " " + className.ListButtonWhite}
+          onClick={() => {
+            assignMutation.mutate(
+              { taskUuid: props.task.uuid as string, owner: o },
+              {
+                onSuccess: () => {
+                  void context.tasks.invalidate();
+                  props.reqClose();
+                },
+              }
+            );
+          }}
+        >
+          <FaUser size={20} className={className.ButtonIcon} />
+          {o ? o : <i>None</i>}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 export default function TaskListItemSettings(props: {
   task: Task;
   reqClose: () => void;
 }) {
+  const [page, setPage] = useState<"menu" | "owner">("menu");
+
   const startedMutation = api.tasks.setStart.useMutation();
   const deleteMutation = api.tasks.delete.useMutation();
 
   const context = api.useContext();
 
-  const stateUpdated = () => {
+  const stateUpdated = (close: () => void) => {
     void (async () => {
       await context.tasks.invalidate();
-      props.reqClose();
+      close();
     })();
   };
+
+  if (page == "owner") return <TaskOwnerList {...props} />;
 
   return (
     <div className="p-4">
@@ -46,12 +92,15 @@ export default function TaskListItemSettings(props: {
         onClick={() => {
           // Start/Top button has been clicked
           startedMutation.mutate(
+            // Delete task has been hit
             {
               taskUuid: props.task.uuid as string,
               started: !props.task.start,
             },
             {
-              onSuccess: () => stateUpdated,
+              onSuccess: () => {
+                stateUpdated(props.reqClose);
+              },
             }
           );
         }}
@@ -71,6 +120,7 @@ export default function TaskListItemSettings(props: {
       <button
         type="button"
         className={className.ListButton + " " + className.ListButtonWhite}
+        onClick={() => setPage("owner")}
       >
         <FaUser size={20} className={className.ButtonIcon} />
         Assign Owner
@@ -81,7 +131,11 @@ export default function TaskListItemSettings(props: {
         onClick={() =>
           deleteMutation.mutate(
             { uuid: props.task.uuid as string },
-            { onSuccess: stateUpdated }
+            {
+              onSuccess: () => {
+                stateUpdated(props.reqClose);
+              },
+            }
           )
         }
       >

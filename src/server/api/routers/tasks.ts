@@ -42,6 +42,20 @@ export const tasksRouter = createTRPCRouter({
     ] as string[];
   }),
 
+  getUsers: publicProcedure.query(() => {
+    // Gets a list of users that we may assign things to from the settings
+    const taskwarrior = new TaskwarriorLib();
+    const config = taskwarrior.config();
+
+    // Pull the owners very unsafe from the config
+
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore: Suppress implicit any type error for this line
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    const owners = ((config?.["uda."]?.["assignedTo."]?.["values"] ?? "") as string).split(",");
+    return owners;
+  }),
+
   /**
    * Update Complete
    */
@@ -89,6 +103,28 @@ export const tasksRouter = createTRPCRouter({
       console.log(cmd);
       console.log(taskwarrior.executeCommand(cmd));
     }),
+  
+    assign: publicProcedure
+    .input(
+      z.object({
+        taskUuid: z.string(),
+        owner: z.string().optional(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      // Get the task with the given id.  Don't know how to load by UUID :(
+      const taskwarrior = new TaskwarriorLib();
+      const tasks = taskwarrior.load();
+
+      const task = tasks.find((t) => t.uuid == input.taskUuid) as Task | undefined;
+      if (!task) {
+        throw Error("Task with given UUID not found");
+      }
+
+      task.assignedTo = input.owner
+      taskwarrior.update([task]);
+    }),
+  
 
   /**
    * Add a new Task, simplistic API
@@ -136,7 +172,7 @@ export const tasksRouter = createTRPCRouter({
 
   delete: publicProcedure
     .input(z.object({ uuid: z.string() }))
-    .mutation(async ({ input, ctx }) => {
+    .mutation(({ input, ctx }) => {
       // Get the task, delete it
       const taskwarrior = new TaskwarriorLib();
       const tasks = taskwarrior.load() as Task[];

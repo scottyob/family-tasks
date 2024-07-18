@@ -3,6 +3,7 @@ import React, { type ReactElement } from "react";
 import { BiCheck, BiMenu } from "react-icons/bi";
 import { HiOutlineCalendar } from "react-icons/hi2";
 import { FaRunning, FaCubes, FaInbox } from "react-icons/fa";
+import { FaPersonDigging } from "react-icons/fa6"
 import { api } from "~/utils/api";
 import { Avatar } from "../avatar";
 import { ReactMarkdown } from "react-markdown/lib/react-markdown";
@@ -248,12 +249,16 @@ export function TaskListItem(props: CheckedListItemProps) {
             {/* Below task, status info */}
             <div className="flex space-x-4 text-xs font-bold text-gray-500">
               {dueJsx}
+
+              {/* Started Status */}
               {task.start ? (
                 <div className="flex space-x-1 text-green-800">
                   <FaRunning className="inline" size={16} />
                   <div>Started</div>
                 </div>
               ) : null}
+
+              {/* Project Status */}
               <div className="flex space-x-1">
                 {task.project ? (
                   <FaCubes className="inline" size={16} />
@@ -262,6 +267,15 @@ export function TaskListItem(props: CheckedListItemProps) {
                 )}
                 <div>{task.project ?? "Inbox"}</div>
               </div>
+
+              {/* Owner Status */}
+              {(task.status == "pending" || task.status == "waiting") &&
+                task.assignedTo && (
+                  <div className="flex space-x-1">
+                    <FaPersonDigging className="inline" size={16} />
+                    <div>{task.assignedTo}</div>
+                  </div>
+                )}
             </div>
           </div>
 

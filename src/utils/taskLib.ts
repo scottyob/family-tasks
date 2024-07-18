@@ -6,6 +6,7 @@ import { type Task as TaskWarriorTask } from "taskwarrior-lib";
 export interface Task extends TaskWarriorTask {
   notes?: string;
   assignedTo?: string;
+  completedBy?: string;
   completeRecurDue?: string;
   completeRecurWait?: string;
 }
