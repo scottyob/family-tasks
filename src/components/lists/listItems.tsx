@@ -197,13 +197,6 @@ export function TaskListItem(props: CheckedListItemProps) {
     );
   }
 
-  // Task worth JSX
-  const taskWorth = TaskWorth(task);
-  let worth = <span>- 🪙{taskWorth}</span>;
-  if (taskWorth <= 0) {
-    worth = <></>;
-  }
-
   // Change the background color if the task has been "Started"
   let bgColor = "bg-gray-50";
   if (task.start) {
@@ -238,7 +231,7 @@ export function TaskListItem(props: CheckedListItemProps) {
         <div className="flex grow place-self-center">
           <div className="grow flex-row">
             <div className={textColor}>
-              {task.id}: {task.description} {worth}
+              {task.id}: {task.description}
             </div>
             {task.notes ? (
               <div className="prose pb-2 pt-2 text-xs">

@@ -1,7 +1,5 @@
-import assert from "assert";
-import { TaskOffsetType } from "./enums";
 import { DateTime } from "luxon";
-import { type Task as TaskWarriorTask } from "taskwarrior-lib";
+import { TaskRc, type Task as TaskWarriorTask } from "taskwarrior-lib";
 
 export interface Task extends TaskWarriorTask {
   notes?: string;
@@ -28,53 +26,18 @@ export function TaskFromTwTask(task: TaskWarriorTask): Task {
 }
 
 export interface FavoriteProject {
-  projectName: string,
-  showInHome?: boolean
+  projectName: string;
+  showInHome?: boolean;
 }
 
-export function TaskWorth(task: Task) {
-  return 0;
-  // const noPenalty = {
-  //     total: Number(task.completionValue) || 0,
-  //     operator: "",
-  //     penalty: 0,
-  // };
-
-  // if(task.dueDate == null || (task.offsetType as TaskOffsetType) == TaskOffsetType.Same) {
-  //     return noPenalty
-  // }
-
-  // const dueDate = DateTime.fromMillis(task.dueDate.getTime());
-  // const diffInDays = Math.ceil(dueDate.until(DateTime.now()).length("days"));
-
-  // if(diffInDays < 0) {
-  //     return noPenalty;
-  // }
-
-  // let totalWorth = 0;
-  // if (task.completionValue != null) {
-  //   const completionValue = Number(task.completionValue);
-  //   totalWorth = completionValue;
-  // }
-
-  // const penalty = diffInDays * Number(task.offsetValue);
-
-  // // let totalWorth = task.completionValue != null ? task.completionValue.toNumber() : 0;
-  // let operator = "+";
-  // switch (task.offsetType as TaskOffsetType) {
-  //   case TaskOffsetType.Increase:
-  //     totalWorth += penalty;
-  //     break;
-  //   case TaskOffsetType.Decrease:
-  //     totalWorth -= penalty;
-  //     totalWorth = totalWorth < 0 ? 0 : totalWorth;
-  //     operator = "-";
-  //     break;
-  // }
-
-  // return {
-  //     total: totalWorth,
-  //     operator,
-  //     penalty
-  // }
+export function OwnersFromTwConfig(config: TaskRc): string[] {
+  const owners =
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+    // @ts-ignore: Suppress implicit any type error for this line
+    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
+    ((config?.["uda."]?.["assignedTo."]?.["values"] ?? "") as string).split(
+      ","
+    );
+  return owners;
 }

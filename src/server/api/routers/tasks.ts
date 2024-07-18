@@ -2,7 +2,7 @@ import { z } from "zod";
 import { RecurringType } from "~/utils/enums";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TaskEditInput } from "~/utils/inputs";
-import { Task, TaskFromTwTask, TaskWorth } from "~/utils/taskLib";
+import { OwnersFromTwConfig, Task, TaskFromTwTask, TaskWorth } from "~/utils/taskLib";
 import { DateTime } from "luxon";
 import { type PrismaClient } from "@prisma/client";
 
@@ -46,14 +46,7 @@ export const tasksRouter = createTRPCRouter({
     // Gets a list of users that we may assign things to from the settings
     const taskwarrior = new TaskwarriorLib();
     const config = taskwarrior.config();
-
-    // Pull the owners very unsafe from the config
-
-    // eslint-disable-next-line @typescript-eslint/ban-ts-comment
-    // @ts-ignore: Suppress implicit any type error for this line
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
-    const owners = ((config?.["uda."]?.["assignedTo."]?.["values"] ?? "") as string).split(",");
-    return owners;
+    return OwnersFromTwConfig(config);
   }),
 
   /**
@@ -71,16 +64,18 @@ export const tasksRouter = createTRPCRouter({
       const taskwarrior = new TaskwarriorLib();
       const tasks = taskwarrior.load();
 
-      const task = tasks.find((t) => t.uuid == input.taskUuid);
+      const task = tasks.find((t) => t.uuid == input.taskUuid) as Task;
       if (!task) {
         throw Error("Task with given UUID not found");
       }
 
       task.status = "pending";
+      task.completedBy = undefined;
       if (input.complete) {
         task.status = "completed";
         task.end = undefined;
         task.start = undefined;
+        task.completedBy = ctx.user.name;
       }
 
       taskwarrior.update([task]);

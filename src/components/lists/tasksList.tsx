@@ -55,8 +55,10 @@ export default function TasksList(props: Props) {
     // Render a list of tasks from the server
     let tasks = [...(tasksQuery.data || [])] as Task[]
     
-    if(props.filterUserFavorites && user?.favoriteProjects) {
-        const userFavoriteProjects = JSON.parse(user.favoriteProjects) as FavoriteProject[]
+    if(props.filterUserFavorites) {
+        let userFavoriteProjects: FavoriteProject[] = [];
+        if(user?.favoriteProjects)
+            userFavoriteProjects = JSON.parse(user.favoriteProjects) as FavoriteProject[]
 
         // Filter the tasks out based on the user starred settings
         tasks = tasks.filter(t => {

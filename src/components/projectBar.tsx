@@ -6,6 +6,7 @@ import { useState } from "react";
 import { api } from "~/utils/api";
 import { useRouter } from "next/router";
 import { FavoriteProject } from "~/utils/taskLib";
+import * as Avatar from "@radix-ui/react-avatar";
 
 const className = {
   header: "flex w-full text-3xl font-bold text-green-800 " + vt323.className,
@@ -26,13 +27,22 @@ export default function ProjectBar(props: { currentProject: string }) {
       a.projectName > b.projectName ? 1 : a.projectName < b.projectName ? -1 : 0
     );
 
-    const projectToLink = (isHome: boolean, url: string, p?: FavoriteProject, title?: string) => (
+    const projectToLink = (
+      isHome: boolean,
+      url: string,
+      p?: FavoriteProject,
+      title?: string
+    ) => (
       <div
         key={title ?? p?.projectName}
         className={
           "m-4 rounded-lg p-3 text-center text-xl " +
           vt323.className +
-          (isHome ? " bg-yellow-100 " : p?.showInHome ? " bg-yellow-400 " : " bg-yellow-400/40 ")
+          (isHome
+            ? " bg-yellow-100 "
+            : p?.showInHome
+            ? " bg-yellow-400 "
+            : " bg-yellow-400/40 ")
         }
         onClick={() => {
           setProjectWindowShown(false);
@@ -76,8 +86,8 @@ export default function ProjectBar(props: { currentProject: string }) {
           </span>
         </div>
         <div className="p-4 pr-8">
-          <Link href="/Nav">
-            <FaBars />
+          <Link href="/Settings">
+            <div className="bg-gray-300 w-8 h-8 rounded-full text-center align-middle">{user?.name[0]}</div>
           </Link>
         </div>
       </div>

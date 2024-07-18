@@ -8,142 +8,31 @@ export const usersRouter = createTRPCRouter({
   /**
    * Get and update user properties
    */
-  name: publicProcedure
-    .query(({ ctx }) => {
-      return ctx.user.name;
-    }),
-  currentUser: publicProcedure
-    .query(({ ctx }) => ctx.user),
-  setName: publicProcedure
-    .input(z.object({ name: z.string() }))
-    .mutation(async ({ input, ctx }) => {
-      return await ctx.prisma.user.update({
-        where: {
-          id: ctx.user.id
-        },
-        data: {
-          name: input.name
-        }
-      })
-    }),
-
+  name: publicProcedure.query(({ ctx }) => {
+    return ctx.user.name;
+  }),
+  currentUser: publicProcedure.query(({ ctx }) => ctx.user),
+  setUser: publicProcedure.input(z.string()).mutation(({ input, ctx }) => {
+    // We need to set the username now via a cookie, for about 10 years
+    ctx.setCookie("username", input, "Max-Age=315360000");
+  }),
   setFavorites: publicProcedure
-    .input(z.object({
-      projectName: z.string(),
-      showInHome: z.boolean().optional(),
-    }).array())
-    .mutation(async ({input, ctx}) => {
+    .input(
+      z
+        .object({
+          projectName: z.string(),
+          showInHome: z.boolean().optional(),
+        })
+        .array()
+    )
+    .mutation(async ({ input, ctx }) => {
       return await ctx.prisma.user.update({
         where: {
-          id: ctx.user.id
+          name: ctx.user.name,
         },
         data: {
-          favoriteProjects: JSON.stringify(input)
-        }
-      })
-    }),
-
-  /**
-   * Get and update group properties
-   */
-  // All the groups the user belongs to
-  groups: publicProcedure
-    .query(async ({ ctx }) => {
-      return await ctx.prisma.group.findMany({
-        where: {
-          users: {
-            some: {
-              user: {
-                id: ctx.user.id
-              }
-            }
-          }
+          favoriteProjects: JSON.stringify(input),
         },
-        include: {
-          users: {
-            include: {
-              user: true
-            }
-          }
-        }
-      })
-    }),
-  group: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ input, ctx }) => {
-      return await ctx.prisma.group.findUniqueOrThrow({ where: { id: input.id } });
-    }),
-
-  createGroup: publicProcedure
-    .input(z.object({ name: z.string() }))
-    .mutation(async ({ input, ctx }) => {
-      // await ctx.prisma.usersOnGroups.deleteMany();
-      // await ctx.prisma.group.deleteMany();
-
-      // Create a new group, connect it to the user, and return
-      return await ctx.prisma.group.create({
-        data: {
-          name: input.name,
-          users: {
-            create: {
-              userId: ctx.user.id,
-            }
-          }
-        },
-      })
-    }),
-  groupMembers: publicProcedure
-    .input(z.object({ id: z.string() }))
-    .query(async ({ input, ctx }) => {
-      // TODO:  Should secure endpoint
-      return await ctx.prisma.user.findMany({
-        where: {
-          groups: {
-            some: {
-              groupId: input.id
-            }
-          }
-        }
       });
     }),
-  addMemberToGroup: publicProcedure
-    .input(z.object({
-      email: z.string(),
-      groupId: z.string()
-    }))
-    .mutation(async ({ input, ctx }) => {
-      // TODO:  Secure endpoint
-
-
-      return await ctx.prisma.usersOnGroups.create({
-        data: {
-          group: {
-            connect: {
-              id: input.groupId
-            }
-          },
-          user: {
-            connect: {
-              email: input.email
-            }
-          }
-        }
-      })
-    }),
-  removeMemberFromGroup: publicProcedure
-    .input(z.object({
-      userId: z.string(),
-      groupId: z.string()
-    }))
-    .mutation(async ({ input, ctx }) => {
-      await ctx.prisma.usersOnGroups.delete({
-        where: {
-          userId_groupId: {
-            groupId: input.groupId,
-            userId: input.userId
-          }
-        }
-      })
-    })
-
-})
+});

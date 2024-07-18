@@ -8,37 +8,39 @@ import "~/styles/globals.scss";
 import "~/styles/reactBootstrapTypeahead.scss";
 import "react-day-picker/dist/style.css";
 
-import 'react-tooltip/dist/react-tooltip.css'
-import 'swiper/css';
+import "react-tooltip/dist/react-tooltip.css";
+import "swiper/css";
 import Head from "next/head";
 import { vt323 } from "~/utils/fonts";
 import React, { Fragment, type ReactNode, useEffect } from "react";
 import { useRouter } from "next/router";
-import { SessionProvider } from "next-auth/react"
-import { useSession } from "next-auth/react"
-import { type Session } from "next-auth";
 
-
-function WithLoginRedirect(props: {children: ReactNode}): JSX.Element | null {
-  const { status } = useSession()
-
+function WithLoginRedirect(props: { children: ReactNode }): JSX.Element | null {
   if (status == "unauthenticated") {
-    return <div className="flex self-center flex-1 justify-center items-center">
-      <div>
-        Please <a className="text-lime-500 text-lg" href="/api/auth/signin">Login</a>
+    return (
+      <div className="flex flex-1 items-center justify-center self-center">
+        <div>
+          Please{" "}
+          <a className="text-lg text-lime-500" href="/api/auth/signin">
+            Login
+          </a>
+        </div>
       </div>
-    </div>
+    );
   }
   if (status == "loading") {
-    return <p>Loading...</p>
+    return <p>Loading...</p>;
   }
 
   return <Fragment>{props.children}</Fragment>;
 }
 
-const MyApp: AppType<{ session: Session | null}> = ({ Component, pageProps: { session, ...pageProps} }) => {
+const MyApp: AppType = ({
+  Component,
+  pageProps: { session, ...pageProps },
+}) => {
   return (
-    <SessionProvider session={session}>
+    <>
       <style jsx global>{`
         html {
         }
@@ -53,23 +55,24 @@ const MyApp: AppType<{ session: Session | null}> = ({ Component, pageProps: { se
         .vt323 {
           font-family: ${vt323.style.fontFamily};
         }
-        `}</style>
+      `}</style>
       <Head>
         <title>Family Tasks</title>
         <meta name="description" content="Tasks for the family" />
         <meta name="theme-color" content="white" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+        <meta
+          name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"
+        />
         <link rel="icon" href="/favicon.ico" />
         {/* <meta name="apple-mobile-web-app-capable" content="yes"></meta> */}
       </Head>
-      <main className="flex min-h-screen max-h-screen flex-col">
-        <WithLoginRedirect>
+      <main className="flex max-h-screen min-h-screen flex-col">
           <Component {...pageProps} />
-        </WithLoginRedirect>
       </main>
       <script src="https://cdnjs.cloudflare.com/ajax/libs/flowbite/1.6.3/flowbite.min.js"></script>
-    </SessionProvider>
+    </>
   );
 };
 

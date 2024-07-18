@@ -18,28 +18,6 @@ import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 
 import { prisma } from "~/server/db";
 
-type CreateContextOptions = {
-  session: Session | null;
-};
-
-
-/**
- * This helper generates the "internals" for a tRPC context. If you need to use it, you can export
- * it from here.
- *
- * Examples of things you may need it for:
- * - testing, so we don't have to mock Next.js' req/res
- * - tRPC's `createSSGHelpers`, where we don't have req/res
- *
- * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
- */
-const createInnerTRPCContext = (opts: CreateContextOptions) => {
-  return {
-    session: opts.session,
-    prisma,
-  };
-};
-
 /**
  * This is the actual context you will use in your router. It will be used to process every request
  * that goes through your tRPC endpoint.
@@ -49,26 +27,34 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   const { req, res } = opts;
 
-  // Get the session from the server using the getServerSession wrapper function
-  const session = await getServerAuthSession({ req, res });
-  const userId = session?.user?.email;
-  if(userId == null) {
-    throw Error("User not logged in");
+  let username = req.cookies["username"];
+  if (!username) {
+    // The user is not logged in, Log the user in the first available user
+    const tw = new TaskwarriorLib();
+    const firstUser = OwnersFromTwConfig(tw.config())[0];
+    if (!firstUser) throw Error("Not logged in, and no users availabile");
+
+    username = firstUser;
   }
 
-  // const userId = opts.req.headers['x-forwarded-user'] as string ?? 'guest';
-  // const user = await initUser(userId);
-  const context = createInnerTRPCContext({session});
-  const user = await context.prisma.user.findFirst({where: {email: userId}});
-
-  if(user == null) {
-    throw Error("Could not find user in DB.  Should have been created when logged in");
-  }
+  // Create the user in the database, or fetch it
+  const user = await prisma.user.upsert({
+    where: { name: username },
+    update: {},
+    create: {name: username }
+  });
 
   return {
     user,
-    ...context,
-  }
+    prisma,
+    setCookie(name: string, value: string, attributes?: string) {
+      res.setHeader(
+        "set-cookie",
+        `${name}=${value}${attributes ? `; ${attributes}` : ""}`,
+      );
+    },
+
+  };
 };
 
 /**
@@ -79,7 +65,8 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
 import { type Session } from "next-auth";
-import { getServerAuthSession } from "../auth";
+import { TaskwarriorLib } from "taskwarrior-lib";
+import { OwnersFromTwConfig } from "~/utils/taskLib";
 
 const t = initTRPC.context<typeof createTRPCContext>().create({
   transformer: superjson,
