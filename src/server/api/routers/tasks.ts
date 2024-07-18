@@ -2,7 +2,7 @@ import { z } from "zod";
 import { RecurringType } from "~/utils/enums";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TaskEditInput } from "~/utils/inputs";
-import { TaskFromTwTask, TaskWorth } from "~/utils/taskLib";
+import { Task, TaskFromTwTask, TaskWorth } from "~/utils/taskLib";
 import { DateTime } from "luxon";
 import { type PrismaClient } from "@prisma/client";
 
@@ -20,17 +20,17 @@ export const tasksRouter = createTRPCRouter({
     )
     .query(({ input, ctx }) => {
       let filter = "";
-      if(input.filter) {
+      if (input.filter) {
         filter = input.filter;
       }
 
       const taskwarrior = new TaskwarriorLib();
-      return taskwarrior.load(filter).map(t => TaskFromTwTask(t));
+      return taskwarrior.load(filter).map((t) => TaskFromTwTask(t));
     }),
 
   getProjects: publicProcedure.query(({}) => {
     const taskwarrior = new TaskwarriorLib();
-    
+
     // Return a list of projects from all of the found tasks in our db
     return [
       ...new Set(
@@ -46,22 +46,24 @@ export const tasksRouter = createTRPCRouter({
    * Update Complete
    */
   setComplete: publicProcedure
-    .input(z.object({
-      taskUuid: z.string(),
-      complete: z.boolean(),
-    }))
-    .mutation(({ input, ctx}) => {
+    .input(
+      z.object({
+        taskUuid: z.string(),
+        complete: z.boolean(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
       // Get the task with the given id.  Don't know how to load by UUID :(
       const taskwarrior = new TaskwarriorLib();
       const tasks = taskwarrior.load();
 
-      const task = tasks.find(t => t.uuid == input.taskUuid);
-      if(!task) {
+      const task = tasks.find((t) => t.uuid == input.taskUuid);
+      if (!task) {
         throw Error("Task with given UUID not found");
       }
 
       task.status = "pending";
-      if(input.complete) {
+      if (input.complete) {
         task.status = "completed";
         task.end = undefined;
         task.start = undefined;
@@ -70,21 +72,41 @@ export const tasksRouter = createTRPCRouter({
       taskwarrior.update([task]);
     }),
 
+  setStart: publicProcedure
+    .input(
+      z.object({
+        taskUuid: z.string(),
+        started: z.boolean().optional(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
+      const taskwarrior = new TaskwarriorLib();
+
+      let cmd = input.taskUuid + " stop";
+      if (input.started) {
+        cmd = input.taskUuid + " start";
+      }
+      console.log(cmd);
+      console.log(taskwarrior.executeCommand(cmd));
+    }),
+
   /**
    * Add a new Task, simplistic API
    */
   add: publicProcedure
-    .input(z.object({
-      project: z.string().optional(),
-      title: z.string(),
-    }))
-    .mutation(({input, ctx}) => {
+    .input(
+      z.object({
+        project: z.string().optional(),
+        title: z.string(),
+      })
+    )
+    .mutation(({ input, ctx }) => {
       const taskwarrior = new TaskwarriorLib();
       taskwarrior.update([
         {
           description: input.title,
           project: input.project,
-        }
+        },
       ]);
     }),
 
@@ -94,23 +116,20 @@ export const tasksRouter = createTRPCRouter({
   edit: publicProcedure
     .input(TaskEditInput)
     .mutation(async ({ input, ctx }) => {
-      await ctx.prisma.task.update({
-        where: { id: input.id },
-        data: {
-          title: input.title,
-          notes: input.notes,
-          complete: input.complete,
-          dueDate: input.dueDate == undefined ? null : input.dueDate,
-          groupId: input.groupId,
-          assignedToId: input.assignedToId ? input.assignedToId : null,
-          completionValue: input.completionValue,
-          offsetValue: input.offsetValue,
-          offsetType: input.offsetType,
-          recurringType: input.repeatDays > 0 ? input.recurringType : "Once",
-          repeatDays: input.repeatDays || null,
-          availableInDays: input.availableIn || null,
-        },
-      });
+      // Get the task, override from form properties, re-save
+      const taskwarrior = new TaskwarriorLib();
+      const tasks = (taskwarrior.load() as Task[]);
+      const task = tasks.find(t => t.uuid == input.uuid);
+      if(!task)
+        throw Error("Task Not Found");
+
+      // Update from input
+      task.description = input.description;
+      task.notes = input.notes;
+      task.tags = input.tags;
+      task.project = input.project;
+
+      taskwarrior.update([task]);
     }),
 
   /**
@@ -201,5 +220,4 @@ export const tasksRouter = createTRPCRouter({
         },
       });
     }),
-
 });

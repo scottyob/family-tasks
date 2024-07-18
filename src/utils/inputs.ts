@@ -1,19 +1,12 @@
 import { z } from "zod";
 
 export const TaskEditInput = z.object({
-  id: z.string(),
-  title: z.string(),
+  uuid: z.string(),
+  description: z.string().optional(),
   notes: z.string(),
-  complete: z.coerce.boolean(),
-  dueDate: z.coerce.date().nullable(),
-  groupId: z.string(),
-  assignedToId: z.string().nullable(),
-  completionValue: z.coerce.number(),
-  offsetValue: z.coerce.number(),
-  offsetType: z.enum(["Same", "Increase", "Decrease"]),
-  recurringType: z.enum(["Once", "From Due Date", "After Completion"]),
-  repeatDays: z.coerce.number(),
-  availableIn: z.coerce.number().nullable()
+  project: z.string().optional(),
+  tags: z.string().array().optional(),
+  // due: z.string().datetime().optional(),
 });
 
 export const RewardEditInput = z.object({

@@ -1,0 +1,27 @@
+
+.dropdown-menu {
+  border: 1px solid #ccc;
+  border-radius: 0.25rem;
+  box-sizing: border-box;
+}
+
+.rbt-input {
+  width: 100%;
+  padding:10px;
+  margin: 0;
+}
+
+.dropdown-item {
+  display: block;
+  padding: 0.5rem 1rem;
+  text-decoration: none;
+  background-color: white;
+
+  &:hover {
+    background-color: lightblue;
+  }
+
+  &.active {
+    background-color: yellow;
+  }
+}

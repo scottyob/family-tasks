@@ -4,7 +4,9 @@ import { type AppType } from "next/app";
 
 import { api } from "~/utils/api";
 
-import "~/styles/globals.css";
+import "~/styles/globals.scss";
+import "~/styles/reactBootstrapTypeahead.scss";
+
 import 'react-tooltip/dist/react-tooltip.css'
 import 'swiper/css';
 import Head from "next/head";

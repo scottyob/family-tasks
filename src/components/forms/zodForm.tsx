@@ -3,10 +3,12 @@
 /* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { zodResolver } from "@hookform/resolvers/zod";
-import { type Decimal } from "@prisma/client/runtime";
 import { DateTime } from "luxon";
-import { useForm, type UseFormProps } from "react-hook-form";
+import { useState } from "react";
+import { useForm, Controller, type UseFormProps } from "react-hook-form";
 import { type z } from "zod";
+import { Command } from "cmdk";
+import { Typeahead } from "react-bootstrap-typeahead";
 
 export function useZodForm<TSchema extends z.ZodType>(
   props: Omit<UseFormProps<TSchema["_input"]>, "resolver"> & {
@@ -16,6 +18,7 @@ export function useZodForm<TSchema extends z.ZodType>(
   const form = useForm<TSchema["_input"]>({
     ...props,
     resolver: zodResolver(props.schema, undefined),
+    
   });
 
   return form;
@@ -25,7 +28,7 @@ export function BasicInput(props: {
   methods: ReturnType<typeof useZodForm>;
   schema: z.ZodObject<any, any>;
   fieldName: string;
-  value: string | number | boolean | Date | null | Decimal;
+  value: string | number | boolean | Date | null;
   inputType?: string;
   options?: Map<string, string>;
   displayName?: string;
@@ -33,6 +36,7 @@ export function BasicInput(props: {
   const { methods, fieldName, schema } = props;
   let { inputType, value } = props;
   const errorMessage = methods.formState.errors[fieldName]?.message;
+  const [typeaheadValue, setTypeaheadValue] = useState("");
 
   let setValueFunction = (v: any) => v;
 
@@ -71,6 +75,7 @@ export function BasicInput(props: {
   };
 
   let input;
+  // Custom input types
   switch (inputType) {
     case "textarea":
       input = <textarea {...inputArgs} />;
@@ -91,6 +96,41 @@ export function BasicInput(props: {
       );
 
       input = <select {...inputArgs}>{optionElements}</select>;
+      break;
+    case "cmdk":
+      const projects = props.options ? [...props.options?.keys()] : [];
+
+      input = (
+        <>
+          <Controller
+            name={props.fieldName}
+            control={methods.control}
+            defaultValue={props.value?.toString()}
+            render={({ field, fieldState }) => {
+              return (
+                <Typeahead
+                  id="typeahead"
+                  options={projects}
+                  defaultInputValue={props.value?.toString()}
+                  onInputChange={(input) => {
+                    console.log("On input change called");
+                    field.onChange(input)}
+                  }
+                  onChange={(selected) => {
+                    console.log("On change called");
+                    if (selected && selected.length > 0) {
+                      field.onChange(selected[0]);
+                    }
+                  }}
+                  onBlur={field.onBlur}
+                  
+                />
+              );
+            }}
+          />
+        </>
+      );
+
       break;
     default:
       input = <input {...inputArgs} />;

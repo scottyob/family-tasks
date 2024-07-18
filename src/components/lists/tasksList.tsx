@@ -7,6 +7,7 @@ import { TaskListItem } from "./listItems";
 import { TaskStatus } from "taskwarrior-lib";
 import { FavoriteProject, Task } from "~/utils/taskLib";
 import { DateTime, Interval } from "luxon";
+import TaskListItemSettings from "./taskListItemSettings";
 
 interface Props {
     project?: string,
@@ -106,7 +107,6 @@ export default function TasksList(props: Props) {
             if (dateB == null) return -1;
 
             const compareTime = DateTime.fromISO(dateA).toMillis() - DateTime.fromISO(dateB).toMillis();
-            console.log("Compare time: ", compareTime);
             return compareTime;
         };
 
@@ -148,10 +148,11 @@ export default function TasksList(props: Props) {
     return <div className={containerStyleClassName} >
         <ModalFormContainer
             shown={modifyTaskId !== undefined}
-            title={`Edit Task}`}
+            title={modifyTaskId?.description}
             setShown={(shown) => { if (!shown) { setModifyTaskId(undefined) } }}
+            descriptionHidden={true}
         >
-            {modifyTaskId != null ? <TaskEdit task={modifyTaskId} onRequestClose={() => setModifyTaskId(undefined)} /> : undefined}
+            {modifyTaskId != null ? <TaskListItemSettings task={modifyTaskId} reqClose={() => {setModifyTaskId(undefined)}}/> : undefined}
         </ModalFormContainer>
         <div className="flex relative">
             <h2>{props.title ?? props.project}</h2>

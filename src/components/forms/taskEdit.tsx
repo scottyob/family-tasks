@@ -1,8 +1,8 @@
-import { type Task } from ".prisma/client";
 import { VscTrash } from "react-icons/vsc";
 import { api } from "~/utils/api";
 import { TaskEditInput } from "~/utils/inputs";
 import { BasicInput, useZodForm } from "./zodForm";
+import { type Task } from "~/utils/taskLib";
 
 interface Props {
   task: Task;
@@ -12,48 +12,27 @@ interface Props {
 export default function TaskEdit(props: Props) {
   const { task } = props;
 
-
-  // Delete task action
-  const deleteMutation = api.tasks.delete.useMutation();
-  const context = api.useContext();
-  const didDelete = () => {
-    deleteMutation.mutate(
-      {
-        id: task.id,
-      },
-      {
-        onSuccess: () => {
-          void context.tasks.invalidate();
-          if (props.onRequestClose != null) {
-            props.onRequestClose();
-          }
-        },
-      }
-    );
-  };
-
-  // Edit task
-  const allGroups = api.users.groups.useQuery();
-  const allGroupMembers = api.users.groupMembers.useQuery({ id: task.groupId });
-
+  const allProjects = api.tasks.getProjects.useQuery();
   const editMutation = api.tasks.edit.useMutation();
+  const context = api.useContext();
+
   const methods = useZodForm({
     schema: TaskEditInput,
     mode: "onChange",
     defaultValues: {
-      id: task.id,
+      ...task,
     },
   });
-  if (task == null || allGroups.isLoading) {
+
+  if (allProjects.isLoading) {
     return <p>Loading...</p>;
   }
 
-  // Group members
-  const groupMembers = allGroupMembers.data?.reduce((map, obj) => {
-    map.set(obj.id, obj.name ?? "");
-    return map;
-  }, new Map<string, string>()) ?? new Map<string, string>();
-  groupMembers.set("", "---");
+  // Build a list of projects to auto-complete
+  const projectsMap = new Map();
+  allProjects.data?.forEach((p) => {
+    projectsMap.set(p, '');
+  });
 
   return (
     <form
@@ -74,9 +53,9 @@ export default function TaskEdit(props: Props) {
       <BasicInput
         schema={TaskEditInput}
         methods={methods}
-        fieldName="title"
-        displayName="Title"
-        value={task.title}
+        fieldName="description"
+        displayName="Description"
+        value={task.description ?? ""}
       />
       <BasicInput
         schema={TaskEditInput}
@@ -89,18 +68,22 @@ export default function TaskEdit(props: Props) {
       <BasicInput
         schema={TaskEditInput}
         methods={methods}
-        fieldName="complete"
-        displayName="Complete"
-        value={task.complete}
+        fieldName="project"
+        displayName="Project"
+        inputType="cmdk"
+        options={projectsMap}
+        value={task.project ?? ""}
       />
-      <BasicInput
+      {/* <BasicInput
         schema={TaskEditInput}
         methods={methods}
-        fieldName="dueDate"
+        fieldName="due"
         displayName="Due By"
-        value={task.dueDate ?? null}
-      />
-      <BasicInput
+        value={task.due ?? null}
+      /> */}
+
+      {/* TODO:  Typeahead for groups */}
+      {/* <BasicInput
         schema={TaskEditInput}
         methods={methods}
         fieldName="groupId"
@@ -110,16 +93,10 @@ export default function TaskEdit(props: Props) {
           map.set(obj.id, obj.name);
           return map;
         }, new Map<string, string>())}
-      />
-      <BasicInput
-        schema={TaskEditInput}
-        methods={methods}
-        fieldName="assignedToId"
-        displayName="Assigned"
-        value={task.assignedToId}
-        options={groupMembers}
-      />
-      <BasicInput
+      /> */}
+
+      {/* TODO:  Put back in task worth at some point */}
+      {/* <BasicInput
         schema={TaskEditInput}
         methods={methods}
         fieldName="completionValue"
@@ -148,43 +125,11 @@ export default function TaskEdit(props: Props) {
             })
           )
         }
-      />
-
-      {/* Custom form element for setting up recuring */}
-      <fieldset className="Fieldset">
-        <label className="Label block">Recurring</label>
-        <div className="relative mt-2 rounded-md shadow-sm">
-          {/* Recuring days */}
-          <input type="number" {...methods.register("repeatDays")} className="Input w-full pr-20" placeholder="days" defaultValue={task.repeatDays?.toString()} />
-          <div className="absolute inset-y-0 right-0 flex items-center">
-            <label className="sr-only">RecurringType</label>
-            {/* Type dropdown */}
-            <select id="recurringType" defaultValue={task.recurringType} {...methods.register("recurringType")} className="h-full rounded-md border-0 bg-transparent py-0 pl-2 pr-7 text-gray-500 focus:ring-2 focus:ring-inset focus:ring-indigo-600 sm:text-sm">
-              <option>Once</option>
-              <option>From Due Date</option>
-              <option>After Completion</option>
-            </select>
-          </div>
-        </div>
-      </fieldset>
-      <div>
-        {methods.formState.errors.repeatDays?.message && <p className="text-red-700">{methods.formState.errors.repeatDays?.message}</p>}
-      </div>
-
-      <BasicInput
-        schema={TaskEditInput}
-        methods={methods}
-        fieldName="availableIn"
-        displayName="Available In (days)"
-        value={task.availableInDays}
-      />
+      /> */}
 
       <div
         style={{ display: "flex", marginTop: 25, justifyContent: "flex-end" }}
       >
-        <button className="Button text-red-700" onClick={didDelete}>
-          <VscTrash className="inline" /> Delete Task
-        </button>
         <button
           className="Button green"
           type="submit"
