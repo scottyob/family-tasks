@@ -74,8 +74,7 @@ export default function ProjectsList() {
   const loading = !(projectsQuery.data && user);
   let projectsJsx = null;
   if (!loading) {
-    const favorites = JSON.parse(user.favoriteProjects ?? "[]") as string[];
-
+    const favorites = JSON.parse(user.favoriteProjects ?? "[]") as FavoriteProject[];
     const projects = projectsQuery.data.sort();
     projectsJsx = projects.map((p) => (
       <ProjectListItem key={p} project={p} userFavorites={favorites} />

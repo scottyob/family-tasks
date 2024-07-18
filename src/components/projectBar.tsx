@@ -1,12 +1,11 @@
 import Link from "next/link";
-import { FaBars, FaHome } from "react-icons/fa";
+import { FaHome } from "react-icons/fa";
 import { vt323 } from "~/utils/fonts";
 import { ModalFormContainer } from "./forms/modalFormContainer";
 import { useState } from "react";
 import { api } from "~/utils/api";
 import { useRouter } from "next/router";
 import { FavoriteProject } from "~/utils/taskLib";
-import * as Avatar from "@radix-ui/react-avatar";
 
 const className = {
   header: "flex w-full text-3xl font-bold text-green-800 " + vt323.className,
@@ -87,7 +86,7 @@ export default function ProjectBar(props: { currentProject: string }) {
         </div>
         <div className="p-4 pr-8">
           <Link href="/Settings">
-            <div className="bg-gray-300 w-8 h-8 rounded-full text-center align-middle">{user?.name[0]}</div>
+            <div className="bg-gray-300 w-8 h-8 rounded-full text-center align-middle">{user && user.name}</div>
           </Link>
         </div>
       </div>

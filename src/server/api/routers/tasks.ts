@@ -25,7 +25,8 @@ export const tasksRouter = createTRPCRouter({
       }
 
       const taskwarrior = new TaskwarriorLib();
-      return taskwarrior.load(filter).map((t) => TaskFromTwTask(t));
+      const rawTasks = taskwarrior.load(filter);
+      return rawTasks.map((t) => TaskFromTwTask(t));
     }),
 
   getProjects: publicProcedure.query(({}) => {
@@ -42,11 +43,12 @@ export const tasksRouter = createTRPCRouter({
     ] as string[];
   }),
 
-  getUsers: publicProcedure.query(() => {
+  getUsers: publicProcedure.query(({}) => {
     // Gets a list of users that we may assign things to from the settings
     const taskwarrior = new TaskwarriorLib();
     const config = taskwarrior.config();
-    return OwnersFromTwConfig(config);
+    const owners = OwnersFromTwConfig(config);
+    return owners;
   }),
 
   /**

@@ -23,6 +23,31 @@ export default function NavPage() {
   });
 
   const loading = !allUsers || !currentUser;
+  console.log("All users", allUsers);
+
+  let userButtons = null;
+  if (allUsers && currentUser) {
+    userButtons = (allUsers?.map((u) => (
+      <button
+        key={u}
+        type="button"
+        className={
+          className.btn +
+          " " +
+          (currentUser.name == u
+            ? className.btnSelected
+            : className.btnInactive)
+        }
+        onClick={() => {
+          // Set the current user to be the one we've got
+          setUser.mutate(u);
+        }}
+      >
+        {u}
+      </button>
+    )))
+  }
+
 
   return (
     <div>
@@ -39,26 +64,7 @@ export default function NavPage() {
           className={"inline-flex rounded-md shadow-sm " + className.btnGroup}
           role="group"
         >
-          {currentUser &&
-            allUsers?.map((u) => (
-              <button
-                key={u}
-                type="button"
-                className={
-                  className.btn +
-                  " " +
-                  (currentUser.name == u
-                    ? className.btnSelected
-                    : className.btnInactive)
-                }
-                onClick={() => {
-                  // Set the current user to be the one we've got
-                  setUser.mutate(u);
-                }}
-              >
-                {u}
-              </button>
-            ))}
+          {userButtons}
         </div>
       </div>
 

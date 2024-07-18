@@ -3,10 +3,10 @@ import React, { type ReactElement } from "react";
 import { BiCheck, BiMenu } from "react-icons/bi";
 import { HiOutlineCalendar } from "react-icons/hi2";
 import { FaRunning, FaCubes, FaInbox } from "react-icons/fa";
-import { FaPersonDigging } from "react-icons/fa6"
+import { FaPersonDigging } from "react-icons/fa6";
 import { api } from "~/utils/api";
 import { Avatar } from "../avatar";
-import { ReactMarkdown } from "react-markdown/lib/react-markdown";
+import Markdown from "react-markdown";
 import { Task, TaskWorth } from "~/utils/taskLib";
 import { DateTime, Interval } from "luxon";
 
@@ -134,7 +134,7 @@ export function TaskListItem(props: CheckedListItemProps) {
         onSuccess: () => {
           void context.tasks.invalidate();
         },
-      }
+      },
     );
   };
 
@@ -235,7 +235,7 @@ export function TaskListItem(props: CheckedListItemProps) {
             </div>
             {task.notes ? (
               <div className="prose pb-2 pt-2 text-xs">
-                <ReactMarkdown>{task.notes}</ReactMarkdown>
+                <Markdown>{task.notes}</Markdown>
               </div>
             ) : null}
 

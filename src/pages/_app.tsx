@@ -7,9 +7,8 @@ import { api } from "~/utils/api";
 import "~/styles/globals.scss";
 import "~/styles/reactBootstrapTypeahead.scss";
 import "react-day-picker/dist/style.css";
-
 import "react-tooltip/dist/react-tooltip.css";
-import "swiper/css";
+
 import Head from "next/head";
 import { vt323 } from "~/utils/fonts";
 import React, { Fragment, type ReactNode, useEffect } from "react";
