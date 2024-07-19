@@ -8,6 +8,7 @@ import { httpBatchLink, loggerLink } from "@trpc/client";
 import { createTRPCNext } from "@trpc/next";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
 import superjson from "superjson";
+import type { NextPageContext } from 'next';
 
 import { type AppRouter } from "~/server/api/root";
 
@@ -17,10 +18,29 @@ const getBaseUrl = () => {
   return `http://localhost:${process.env.PORT ?? 3000}`; // dev SSR should use localhost
 };
 
+
+/**
+ * Extend `NextPageContext` with meta data that can be picked up by `responseMeta()` when server-side rendering
+ */
+export interface SSRContext extends NextPageContext {
+  /**
+   * Set HTTP Status code
+   * @example
+   * const utils = trpc.useUtils();
+   * if (utils.ssrContext) {
+   *   utils.ssrContext.status = 404;
+   * }
+   */
+  status?: number;
+}
+
 /** A set of type-safe react-query hooks for your tRPC API. */
-export const api = createTRPCNext<AppRouter>({
-  config() {
+export const api = createTRPCNext<AppRouter, SSRContext>({
+  // @ts-ignore
+  config({ ctx }) {
     return {
+      transformer: true,
+
       /**
        * Links used to determine request flow from client to server.
        *
@@ -44,7 +64,7 @@ export const api = createTRPCNext<AppRouter>({
    *
    * @see https://trpc.io/docs/nextjs#ssr-boolean-default-false
    */
-  ssr: false,
+  // ssr: false,
 });
 
 /**

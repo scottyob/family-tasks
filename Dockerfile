@@ -1,10 +1,16 @@
-FROM node:18-alpine AS base
+FROM node:18-bookworm AS base
+
+ENV PRISMA_SKIP_POSTINSTALL_GENERATE=true
 
 # Install dependencies only when needed
 FROM base AS deps
 # Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat gcompat
+# RUN apk add --no-cache libc6-compat openssl musl
+RUN apt-get update && apt-get install -y taskwarrior
 WORKDIR /app
+
+# Copy prisma
+COPY prisma ./
 
 # Install dependencies based on the preferred package manager
 COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
@@ -27,6 +33,9 @@ COPY . .
 # Uncomment the following line in case you want to disable telemetry during the build.
 # ENV NEXT_TELEMETRY_DISABLED 1
 
+ENV DATABASE_URL "/db/db.sqlite"
+ENV SKIP_ENV_VALIDATION 1
+
 RUN \
   if [ -f yarn.lock ]; then yarn run build; \
   elif [ -f package-lock.json ]; then npm run build; \
@@ -42,8 +51,8 @@ ENV NODE_ENV production
 # Uncomment the following line in case you want to disable telemetry during runtime.
 # ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1004 nodejs
+RUN adduser --system --uid 1004 nextjs
 
 COPY --from=builder /app/public ./public
 
@@ -56,6 +65,8 @@ RUN chown nextjs:nodejs .next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 
+RUN apt-get update && apt-get install -y taskwarrior python-is-python3 jq
+
 USER nextjs
 
 EXPOSE 3000
@@ -64,4 +75,4 @@ ENV PORT 3000
 
 # server.js is created by next build from the standalone output
 # https://nextjs.org/docs/pages/api-reference/next-config-js/output
-CMD HOSTNAME="0.0.0.0" node server.js
+CMD HOSTNAME="0.0.0.0" TASKRC="/.taskrc" node server.js

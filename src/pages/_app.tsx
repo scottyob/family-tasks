@@ -36,7 +36,7 @@ function WithLoginRedirect(props: { children: ReactNode }): JSX.Element | null {
 
 const MyApp: AppType = ({
   Component,
-  pageProps: { session, ...pageProps },
+  pageProps: pageProps,
 }) => {
   return (
     <>

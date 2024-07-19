@@ -1,4 +1,3 @@
-import { VscTrash } from "react-icons/vsc";
 import { api } from "~/utils/api";
 import { TaskEditInput } from "~/utils/inputs";
 import { BasicInput, useZodForm } from "./zodForm";
@@ -26,7 +25,7 @@ export default function TaskEdit(props: Props) {
     },
   });
 
-  if (allProjects.isLoading) {
+  if (allProjects.isPending) {
     return <p>Loading...</p>;
   }
 
@@ -138,58 +137,13 @@ export default function TaskEdit(props: Props) {
         value={task.completeRecurWait ?? null}
       />
 
-      {/* TODO:  Typeahead for groups */}
-      {/* <BasicInput
-        schema={TaskEditInput}
-        methods={methods}
-        fieldName="groupId"
-        displayName="Group"
-        value={task.groupId}
-        options={allGroups.data?.reduce((map, obj) => {
-          map.set(obj.id, obj.name);
-          return map;
-        }, new Map<string, string>())}
-      /> */}
-
-      {/* TODO:  Put back in task worth at some point */}
-      {/* <BasicInput
-        schema={TaskEditInput}
-        methods={methods}
-        fieldName="completionValue"
-        displayName="Worth 🪙"
-        value={task.completionValue}
-      />
-      <BasicInput
-        schema={TaskEditInput}
-        methods={methods}
-        fieldName="offsetValue"
-        displayName="Penalty 🪙"
-        value={task.offsetValue}
-      />
-      <BasicInput
-        schema={TaskEditInput}
-        methods={methods}
-        fieldName="offsetType"
-        displayName="Pentalty"
-        value={task.offsetType}
-        options={
-          new Map(
-            Object.entries({
-              Same: "None",
-              Increase: "🪙 Increase",
-              Decrease: "🪙 Decrease",
-            })
-          )
-        }
-      /> */}
-
       <div
         style={{ display: "flex", marginTop: 25, justifyContent: "flex-end" }}
       >
         <button
           className="Button green"
           type="submit"
-          disabled={editMutation.isLoading}
+          disabled={editMutation.isPending}
           autoFocus
         >
           Save

@@ -5,9 +5,8 @@ import { HiOutlineCalendar } from "react-icons/hi2";
 import { FaRunning, FaCubes, FaInbox } from "react-icons/fa";
 import { FaPersonDigging } from "react-icons/fa6";
 import { api } from "~/utils/api";
-import { Avatar } from "../avatar";
 import Markdown from "react-markdown";
-import { Task, TaskWorth } from "~/utils/taskLib";
+import { Task } from "~/utils/taskLib";
 import { DateTime, Interval } from "luxon";
 
 interface Props {
@@ -142,7 +141,7 @@ export function TaskListItem(props: CheckedListItemProps) {
   let dueJsx = null;
   if (task.status == "waiting" || (task.due && task.status == "pending")) {
     const now = DateTime.now();
-    let dueDate = DateTime.now();
+    let dueDate: DateTime<true> | DateTime<false> = DateTime.now();
     if (task.status == "waiting" && task.wait) {
       dueDate = DateTime.fromISO(task.wait);
     } else if (task.due) {

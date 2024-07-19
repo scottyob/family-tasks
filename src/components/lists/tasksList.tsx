@@ -49,7 +49,7 @@ export default function TasksList(props: Props) {
     const addTaskMutator = api.tasks.add.useMutation();
 
     // Determine if we're loading
-    const loading = tasksQuery.data == undefined || addTaskMutator.isLoading;
+    const loading = tasksQuery.data == undefined || addTaskMutator.isPending;
     const containerStyleClassName = [className.container, (loading ? className.loading : "")].join(" ");
 
     // Render a list of tasks from the server

@@ -29,7 +29,7 @@ function TaskOwnerList(props: { task: Task; reqClose: () => void }) {
   owners = [undefined, ...owners]; 
 
   return (
-    <div className={"p-4 " + (assignMutation.isLoading ? "animate-pulse" : "")}>
+    <div className={"p-4 " + (assignMutation.isPending ? "animate-pulse" : "")}>
       {owners.map((o) => (
         <button
           key={o}

@@ -27,7 +27,7 @@ function ProjectListItem(props: { project: string; userFavorites: FavoriteProjec
     <StandardListItem
       key={props.project}
       text={props.project}
-      loading={favoriteMutation.isLoading}
+      loading={favoriteMutation.isPending}
       leftInteractive={
         interactiveIcon
       }

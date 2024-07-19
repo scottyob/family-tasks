@@ -64,7 +64,6 @@ export const createTRPCContext = async (opts: CreateNextContextOptions) => {
  */
 import { initTRPC } from "@trpc/server";
 import superjson from "superjson";
-import { type Session } from "next-auth";
 import { TaskwarriorLib } from "taskwarrior-lib";
 import { OwnersFromTwConfig } from "~/utils/taskLib";
 
