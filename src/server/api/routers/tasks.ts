@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { createTRPCRouter, publicProcedure } from "../trpc";
 import { TaskEditInput } from "~/utils/inputs";
-import { OwnersFromTwConfig, Task, TaskFromTwTask } from "~/utils/taskLib";
+import { OwnersFromTwConfig, type Task, TaskFromTwTask } from "~/utils/taskLib";
 
 import { TaskwarriorLib } from "taskwarrior-lib";
 
@@ -96,9 +96,12 @@ export const tasksRouter = createTRPCRouter({
       }
       console.log(cmd);
       console.log(taskwarrior.executeCommand(cmd));
+
+      // Also update the owner
+      assignTaskTo(input.taskUuid, ctx.user.name);
     }),
-  
-    assign: publicProcedure
+
+  assign: publicProcedure
     .input(
       z.object({
         taskUuid: z.string(),
@@ -106,19 +109,8 @@ export const tasksRouter = createTRPCRouter({
       })
     )
     .mutation(({ input, ctx }) => {
-      // Get the task with the given id.  Don't know how to load by UUID :(
-      const taskwarrior = new TaskwarriorLib();
-      const tasks = taskwarrior.load();
-
-      const task = tasks.find((t) => t.uuid == input.taskUuid) as Task | undefined;
-      if (!task) {
-        throw Error("Task with given UUID not found");
-      }
-
-      task.assignedTo = input.owner
-      taskwarrior.update([task]);
+      assignTaskTo(input.taskUuid, input.owner);
     }),
-  
 
   /**
    * Add a new Task, simplistic API
@@ -176,3 +168,17 @@ export const tasksRouter = createTRPCRouter({
       taskwarrior.del([task]);
     }),
 });
+
+function assignTaskTo(taskUuid: string, owner: string | undefined) {
+  // Get the task with the given id.  Don't know how to load by UUID :(
+  const taskwarrior = new TaskwarriorLib();
+  const tasks = taskwarrior.load();
+
+  const task = tasks.find((t) => t.uuid == taskUuid) as Task | undefined;
+  if (!task) {
+    throw Error("Task with given UUID not found");
+  }
+
+  task.assignedTo = owner;
+  taskwarrior.update([task]);
+}

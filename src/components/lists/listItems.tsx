@@ -203,7 +203,7 @@ export function TaskListItem(props: CheckedListItemProps) {
   }
 
   return (
-    <div className="m-0.5 flex min-h-[60px]">
+    <div className={"m-0.5 flex min-h-[60px] " + (updateFlagged.isPending ? "animate-pulse" : "")}>
       {/* Left priority & done button */}
       <div
         className={
